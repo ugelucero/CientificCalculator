@@ -3,7 +3,7 @@
    * Keypad.svelte - Teclado numérico y operadores básicos.
    * Emite eventos al presionar cada tecla.
    */
-  let { onKeyPress = () => {} } = $props();
+  const { onKeyPress = () => {} } = $props();
 
   const buttons = [
     // Fila 1
@@ -45,9 +45,9 @@
 </script>
 
 <div class="keypad">
-  {#each buttons as row}
+  {#each buttons as row, i (i)}
     <div class="keypad-row">
-      {#each row as btn}
+      {#each row as btn, j (j)}
         <button
           class="key-btn {btn.variant}"
           onclick={() => onKeyPress(btn.value)}

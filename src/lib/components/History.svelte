@@ -3,7 +3,7 @@
    * History.svelte - Panel de historial de evaluaciones.
    * Muestra la lista de expresiones previas y sus resultados.
    */
-  let { entries = [], onSelect = () => {}, onClear = () => {} } = $props();
+  const { entries = [], onSelect = () => {}, onClear = () => {} } = $props();
 </script>
 
 <div class="history-panel">
@@ -18,7 +18,7 @@
     {#if entries.length === 0}
       <p class="empty">No history yet</p>
     {:else}
-      {#each entries as entry}
+      {#each entries as entry, i (i)}
         <button class="history-entry" onclick={() => onSelect(entry)}>
           <span class="entry-expr">{entry.expression}</span>
           <span class="entry-result">{entry.result}</span>

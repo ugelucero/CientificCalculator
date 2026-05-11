@@ -2,19 +2,19 @@
   /**
    * ScientificKeys.svelte - Panel de funciones científicas expandible.
    */
-  let { expanded = false, onKeyPress = () => {}, onToggleExpand = () => {} } = $props();
+  const { expanded = false, onKeyPress = () => {}, onToggleExpand = () => {} } = $props();
 
   const scientificButtons = [
     [
       { label: 'sin',  value: 'sin(' },
       { label: 'cos',  value: 'cos(' },
       { label: 'tan',  value: 'tan(' },
-      { label: 'π',    value: 'π' },
+      { label: 'π',    value: 'pi' },
     ],
     [
       { label: 'log',  value: 'log(' },
       { label: 'ln',   value: 'ln(' },
-      { label: '√',    value: '√(' },
+      { label: '√',    value: 'sqrt(' },
       { label: 'e',    value: 'e' },
     ],
     [
@@ -24,7 +24,7 @@
       { label: ')',    value: ')' },
     ],
     [
-      { label: 'EXP',  value: 'EXP' },
+      { label: 'EXP',  value: 'exp(' },
       { label: '|x|',  value: 'abs(' },
       { label: 'n!',   value: '!' },
       { label: '1/x',  value: '^(-1)' },
@@ -39,9 +39,9 @@
 
   {#if expanded}
     <div class="scientific-keys">
-      {#each scientificButtons as row}
+      {#each scientificButtons as row, i (i)}
         <div class="sci-row">
-          {#each row as btn}
+          {#each row as btn, j (j)}
             <button
               class="sci-btn"
               onclick={() => onKeyPress(btn.value)}
