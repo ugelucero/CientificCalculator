@@ -8,16 +8,27 @@
 
 /** @type {import('@tauri-apps/api/core').invoke|null} */
 let invokeFn = null;
+let tauriAvailable = null; // null = no verificado aún
+
+/** Determina si la app se ejecuta dentro de Tauri */
+async function isTauriEnvironment() {
+  if (tauriAvailable !== null) return tauriAvailable;
+  try {
+    const tauriCore = await import('@tauri-apps/api/core');
+    tauriAvailable = typeof tauriCore.isTauri === 'function' && tauriCore.isTauri();
+    if (tauriAvailable) {
+      invokeFn = tauriCore.invoke;
+    }
+  } catch {
+    tauriAvailable = false;
+    invokeFn = null;
+  }
+  return tauriAvailable;
+}
 
 async function getInvoke() {
-  if (!invokeFn) {
-    try {
-      const tauriCore = await import('@tauri-apps/api/core');
-      invokeFn = tauriCore.invoke;
-    } catch {
-      // Tauri no disponible (entorno navegador)
-      invokeFn = null;
-    }
+  if (invokeFn === null && tauriAvailable === null) {
+    await isTauriEnvironment();
   }
   return invokeFn;
 }

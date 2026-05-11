@@ -73,11 +73,7 @@
     }
   }
 
-  /** Registra/desregistra el listener de teclado */
-  onMount(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  });
+  /** El listener de teclado se registra automáticamente via <svelte:window onkeydown> */
 
   // ── Handlers para componentes ────────────────────────────
 
