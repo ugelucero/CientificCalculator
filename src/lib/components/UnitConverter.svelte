@@ -13,16 +13,16 @@
   // ─── Catálogo de unidades ───────────────────────────────────────────────
 
   const CATEGORIES = [
-    { value: 'Length',       label: '📏 Longitud' },
-    { value: 'Mass',         label: '⚖️ Masa' },
-    { value: 'Temperature',  label: '🌡️ Temperatura' },
-    { value: 'Volume',       label: '🧪 Volumen' },
-    { value: 'Area',         label: '📐 Área' },
-    { value: 'Time',         label: '⏱️ Tiempo' },
-    { value: 'Speed',        label: '🚀 Velocidad' },
-    { value: 'Pressure',     label: '🔽 Presión' },
-    { value: 'Energy',       label: '⚡ Energía' },
-    { value: 'Data',         label: '💾 Datos' },
+    { value: 'Length',       label: '[L] Longitud' },
+    { value: 'Mass',         label: '[M] Masa' },
+    { value: 'Temperature',  label: '[T] Temperatura' },
+    { value: 'Volume',       label: '[V] Volumen' },
+    { value: 'Area',         label: '[A] Área' },
+    { value: 'Time',         label: '[t] Tiempo' },
+    { value: 'Speed',        label: '[v] Velocidad' },
+    { value: 'Pressure',     label: '[P] Presión' },
+    { value: 'Energy',       label: '[E] Energía' },
+    { value: 'Data',         label: '[D] Datos' },
   ];
 
   const UNITS_BY_CATEGORY = {

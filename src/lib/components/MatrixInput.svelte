@@ -24,6 +24,18 @@
     return Array.from({ length: r }, () => Array(c).fill(0));
   }
 
+  /** Operación binaria activa (muestra matriz B) */
+  let showB = $state(false);
+
+  /** Resultado formateado devuelto por el backend */
+  let resultDisplay = $state('');
+
+  /** Mensaje de error */
+  let errorMessage = $state('');
+
+  /** Indica si hubo un resultado */
+  let hasResult = $state(false);
+
   /** Inicializar al montar (solo la primera vez) */
   let initialized = false;
   $effect(() => {

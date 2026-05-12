@@ -27,8 +27,10 @@
     const root = document.documentElement;
     if (state.theme === 'dark') {
       root.classList.add('dark');
+      root.style.colorScheme = 'dark';
     } else {
       root.classList.remove('dark');
+      root.style.colorScheme = 'light';
     }
   });
 
@@ -187,20 +189,20 @@
       </select>
       <button
         onclick={toggleUnitConverter}
-        class="ml-auto p-1.5 text-lg leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        class="ml-auto px-2 py-1 text-[11px] font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-400 dark:border-gray-600"
         class:bg-blue-100={showUnitConverter}
         class:dark:bg-blue-900={showUnitConverter}
         aria-label="Toggle unit converter"
         title="Conversor de unidades"
       >
-        ⇄
+        Conv
       </button>
       <button
         onclick={toggleTheme}
-        class="p-1.5 text-lg leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        class="px-2 py-1 text-[11px] font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-400 dark:border-gray-600"
         aria-label="Toggle theme"
       >
-        {state.theme === 'dark' ? '☀️' : '🌙'}
+        {state.theme === 'dark' ? 'Claro' : 'Oscuro'}
       </button>
     </div>
   </div>
