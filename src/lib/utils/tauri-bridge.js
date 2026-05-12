@@ -485,4 +485,10 @@ export const api = {
     if (!invoke) return;
     return invoke('set_precision', { digits });
   },
+
+  async setBase(base) {
+    const invoke = await getInvoke();
+    if (!invoke) return;
+    return invoke('set_base', { base });
+  },
 };

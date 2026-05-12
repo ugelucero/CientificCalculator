@@ -118,6 +118,7 @@ function getInitialState() {
     precision: 10,
     scientificExpanded: false,
     theme: savedTheme,
+    base: 'DEC',
   };
 }
 
@@ -422,6 +423,12 @@ function createCalculatorStore() {
     });
   }
 
+  /** Cambia la base (HEX, DEC, OCT, BIN). */
+  function setBase(base) {
+    update((state) => ({ ...state, base }));
+    api.setBase(base).catch(() => {});
+  }
+
   /** Cambia la precisión decimal. */
   function setPrecision(precision) {
     update((state) => ({ ...state, precision }));
@@ -435,6 +442,7 @@ function createCalculatorStore() {
     backspace,
     calculate,
     setMode,
+    setBase,
     setAngleMode,
     toggleScientific,
     memoryStore,

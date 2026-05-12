@@ -2,6 +2,7 @@
   /**
    * Display.svelte - Pantalla de la calculadora.
    * Muestra expresión actual, resultado y estado (modo, ángulo, memoria, precisión).
+   * En modo Programmer, el resultado se muestra con prefijo de base.
    */
   const {
     expression = '',
@@ -11,6 +12,7 @@
     memory = null,
     mode = 'Standard',
     precision = 10,
+    base = 'DEC',
   } = $props();
 
   /** Abreviaturas para modos angulares */
@@ -20,8 +22,27 @@
 
   /** Etiqueta del modo actual */
   const modeLabel = $derived(
-    mode === 'Scientific' ? 'SCI' : mode === 'Programmer' ? 'PROG' : ''
+    mode === 'Scientific' ? 'SCI' : mode === 'Programmer' ? 'PROG' : mode === 'Complex' ? 'CMPLX' : ''
   );
+
+  /** Etiqueta de la base activa (modo Programmer) */
+  const baseLabel = $derived(
+    mode === 'Programmer' ? base : ''
+  );
+
+  /** Prefijo para el resultado según base (modo Programmer) */
+  const formattedResult = $derived(() => {
+    if (mode !== 'Programmer' || !result || error) return result;
+    const num = parseInt(result, 10);
+    if (Number.isNaN(num)) return result;
+    const abs = Math.abs(num);
+    switch (base) {
+      case 'HEX': return '0x' + abs.toString(16).toUpperCase();
+      case 'OCT': return '0o' + abs.toString(8);
+      case 'BIN': return '0b' + abs.toString(2);
+      default: return String(abs);
+    }
+  });
 
   /** Clases dinámicas para la expresión */
   const expressionClasses = $derived(
@@ -36,6 +57,9 @@
     <div class="flex gap-1.5 items-center">
       {#if modeLabel}
         <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-purple-700 text-purple-200">{modeLabel}</span>
+      {/if}
+      {#if baseLabel}
+        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-teal-700 text-teal-200">{baseLabel}</span>
       {/if}
       <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-gray-600 dark:bg-gray-700 text-gray-400 dark:text-gray-400">P{precision}</span>
     </div>
@@ -60,7 +84,7 @@
       <span class="text-lg font-medium break-words whitespace-normal">{error}</span>
     {:else}
       <span class="text-3xl font-semibold text-gray-900 dark:text-gray-100">
-        {result || '\u00A0'}
+        {formattedResult() || '\u00A0'}
       </span>
     {/if}
   </div>

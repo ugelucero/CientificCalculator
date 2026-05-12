@@ -2,8 +2,13 @@
   /**
    * Keypad.svelte - Teclado numérico y operadores básicos.
    * Emite eventos al presionar cada tecla.
+   * Soporta teclas adicionales para modo Programmer (HEX A-F, bitwise ops).
    */
-  const { onKeyPress = () => {} } = $props();
+  const {
+    onKeyPress = () => {},
+    mode = 'Standard',
+    base = 'DEC',
+  } = $props();
 
   const buttons = [
     // Fila 1
@@ -43,6 +48,26 @@
     ],
   ];
 
+  /** Botones HEX A-F (solo cuando mode=Programmer y base=HEX) */
+  const hexDigits = [
+    { label: 'A', value: 'A', variant: 'digit' },
+    { label: 'B', value: 'B', variant: 'digit' },
+    { label: 'C', value: 'C', variant: 'digit' },
+    { label: 'D', value: 'D', variant: 'digit' },
+    { label: 'E', value: 'E', variant: 'digit' },
+    { label: 'F', value: 'F', variant: 'digit' },
+  ];
+
+  /** Botones de operaciones bitwise (solo cuando mode=Programmer) */
+  const bitwiseOps = [
+    { label: 'AND', value: '&',   variant: 'bitwise' },
+    { label: 'OR',  value: '|',   variant: 'bitwise' },
+    { label: 'XOR', value: '^',   variant: 'bitwise' },
+    { label: 'NOT', value: '~',   variant: 'bitwise' },
+    { label: 'SHL', value: '<<',  variant: 'bitwise' },
+    { label: 'SHR', value: '>>',  variant: 'bitwise' },
+  ];
+
   /** Clases Tailwind por variante de botón */
   const variantClasses = {
     digit:
@@ -53,10 +78,41 @@
       'bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 active:scale-95 active:opacity-85 text-gray-800 dark:text-gray-300',
     equals:
       'bg-green-500 dark:bg-green-600 hover:bg-green-400 dark:hover:bg-green-500 active:scale-95 active:opacity-85 text-white font-bold',
+    bitwise:
+      'bg-teal-500 dark:bg-teal-600 hover:bg-teal-400 dark:hover:bg-teal-500 active:scale-95 active:opacity-85 text-white',
   };
 </script>
 
 <div class="flex flex-col gap-1.5 p-2">
+  {#if mode === 'Programmer'}
+    <!-- Fila de dígitos HEX (A-F) solo si base es HEX -->
+    {#if base === 'HEX'}
+      <div class="flex gap-1.5">
+        {#each hexDigits as btn, i (i)}
+          <button
+            class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
+            onclick={() => onKeyPress(btn.value)}
+          >
+            {btn.label}
+          </button>
+        {/each}
+      </div>
+    {/if}
+
+    <!-- Fila de operaciones bitwise -->
+    <div class="flex gap-1.5">
+      {#each bitwiseOps as btn, i (i)}
+        <button
+          class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
+          onclick={() => onKeyPress(btn.value)}
+        >
+          {btn.label}
+        </button>
+      {/each}
+    </div>
+  {/if}
+
+  <!-- Teclado numérico principal -->
   {#each buttons as row, i (i)}
     <div class="flex gap-1.5">
       {#each row as btn, j (j)}

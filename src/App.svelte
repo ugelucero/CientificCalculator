@@ -11,6 +11,8 @@
   import History from './lib/components/History.svelte';
   import ModeSelector from './lib/components/ModeSelector.svelte';
   import UnitConverter from './lib/components/UnitConverter.svelte';
+  import ProgrammerView from './lib/components/ProgrammerView.svelte';
+  import ComplexInput from './lib/components/ComplexInput.svelte';
 
   /** Estado reactivo derivado de la store */
   const state = $derived($calculator);
@@ -180,15 +182,31 @@
   </div>
 
   <!-- Display: expresión + resultado + indicadores -->
-  <Display
-    expression={state.expression}
-    result={state.result}
-    error={state.error}
-    angleMode={state.angleMode}
-    memory={state.memory}
-    mode={state.mode}
-    precision={state.precision}
-  />
+  {#if state.mode === 'Programmer'}
+    <ProgrammerView
+      expression={state.expression}
+      result={state.result}
+      error={state.error}
+      base={state.base}
+    />
+  {:else if state.mode === 'Complex'}
+    <ComplexInput
+      expression={state.expression}
+      result={state.result}
+      error={state.error}
+    />
+  {:else}
+    <Display
+      expression={state.expression}
+      result={state.result}
+      error={state.error}
+      angleMode={state.angleMode}
+      memory={state.memory}
+      mode={state.mode}
+      precision={state.precision}
+      base={state.base}
+    />
+  {/if}
 
   <!-- Panel de conversión de unidades (toggle) -->
   {#if showUnitConverter}
@@ -205,7 +223,11 @@
   />
 
   <!-- Teclado numérico principal -->
-  <Keypad onKeyPress={handleKeyPress} />
+  <Keypad
+    onKeyPress={handleKeyPress}
+    mode={state.mode}
+    base={state.base}
+  />
 
   <!-- Panel de historial -->
   <History

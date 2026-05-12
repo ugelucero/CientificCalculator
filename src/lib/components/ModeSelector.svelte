@@ -17,6 +17,9 @@
     { value: 'Standard',    label: 'Std' },
     { value: 'Scientific',  label: 'Sci' },
     { value: 'Programmer',  label: 'Prog' },
+    { value: 'Complex',     label: 'Cmplx' },
+    { value: 'Matrix',      label: 'Mat' },
+    { value: 'Statistics',  label: 'Stat' },
   ];
 
   const angleModes = [
