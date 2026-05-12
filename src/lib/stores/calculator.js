@@ -127,13 +127,32 @@ function createCalculatorStore() {
   const { subscribe, set, update } = writable({ ...initialState });
 
   /**
+   * Bandera para saber si acabamos de evaluar (post =).
+   * Si es true y se pulsa dígito/función, se reemplaza la expresión.
+   * Si se pulsa operador, se encadena desde el resultado.
+   */
+  let justEvaluated = false;
+
+  /**
    * Agrega un token/valor a la expresión actual.
    *
    * @param {string} value - Token a agregar: dígito, operador, función con '(', etc.
    */
   function append(value) {
     update((state) => {
-      const expr = state.expression;
+      let expr = state.expression;
+
+      // ── Si acabamos de evaluar (post =), comportamiento en cadena ──
+      if (justEvaluated && state.result) {
+        if (['+', '-', '*', '/', '^', '%'].includes(value)) {
+          // Operador: encadenar desde el resultado
+          expr = state.result;
+        } else {
+          // Dígito, función, constante, etc.: empezar de cero
+          expr = '';
+        }
+        justEvaluated = false;
+      }
 
       // ── Operadores binarios: agregar espacios alrededor ──
       if (['+', '-', '*', '/', '^', '%'].includes(value)) {
@@ -241,11 +260,12 @@ function createCalculatorStore() {
    * En caso de error, almacena el mensaje en `state.error`.
    */
   async function calculate() {
-    let expr, mode;
+    let expr, mode, angleMode;
     // Leer la expresión actual del store de forma síncrona
     const unsub = subscribe((state) => {
       expr = state.expression;
       mode = state.mode;
+      angleMode = state.angleMode;
     });
     unsub();
 
@@ -259,7 +279,7 @@ function createCalculatorStore() {
     }
 
     try {
-      const result = await api.evaluateExpression(expr, mode);
+      const result = await api.evaluateExpression(expr, mode, angleMode);
 
       // Agregar al historial
       const historyEntry = {
@@ -267,12 +287,15 @@ function createCalculatorStore() {
         result: result.result,
       };
 
+      // Marcar para comportamiento en cadena (próximo append)
+      justEvaluated = true;
+
       update((state) => {
         const newHistory = [historyEntry, ...state.history].slice(0, 100); // límite 100
         return {
           ...state,
           result: result.result,
-          expression: result.display || expr,
+          expression: result.result, // ← el resultado reemplaza la expresión
           error: null,
           history: newHistory,
         };

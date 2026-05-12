@@ -60,17 +60,39 @@ function localFactorial(n) {
 }
 
 /**
+ * Convierte un ángulo según el modo angular especificado.
+ * @param {number} value - Ángulo en la unidad de origen
+ * @param {string} fromMode - 'Deg' | 'Rad' | 'Grad'
+ * @param {'toRad'|'fromRad'} direction - 'toRad' para convertir a radianes (sin/cos/tan),
+ *                                        'fromRad' para convertir desde radianes (asin/acos/atan)
+ * @returns {number}
+ */
+function convertAngle(value, fromMode, direction) {
+  if (fromMode === 'Rad') return value;
+  if (direction === 'toRad') {
+    if (fromMode === 'Deg') return value * Math.PI / 180;
+    if (fromMode === 'Grad') return value * Math.PI / 200;
+  } else {
+    // fromRad: convertir radianes a la unidad destino
+    if (fromMode === 'Deg') return value * 180 / Math.PI;
+    if (fromMode === 'Grad') return value * 200 / Math.PI;
+  }
+  return value;
+}
+
+/**
  * Evalúa una expresión localmente para desarrollo en navegador.
  * Soporta: +, -, *, /, ^, %, !, (), sin, cos, tan, asin, acos, atan,
  * sinh, cosh, tanh, log (base 10), ln, log2, log10, sqrt, cbrt, abs,
- * exp, pi, e, ans.
+ * exp, pi, e, ans, phi, c.
  *
  * La precisión es limitada comparada con el backend Rust.
  *
  * @param {string} expression - Expresión matemática en notación infija
+ * @param {string} [angleMode='Rad'] - 'Deg' | 'Rad' | 'Grad'
  * @returns {{ result: string, display: string, format: string }}
  */
-function evaluateLocal(expression) {
+function evaluateLocal(expression, angleMode = 'Rad') {
   const trimmed = expression.trim();
 
   if (!trimmed) {
@@ -82,6 +104,17 @@ function evaluateLocal(expression) {
     throw new Error('Caracteres no permitidos en la expresión');
   }
 
+  // ── Wrappers trigonométricos con conversión angular ──
+  const angleMode_ = angleMode || 'Rad';
+  const __trig = {
+    sin:  (x) => Math.sin(convertAngle(x, angleMode_, 'toRad')),
+    cos:  (x) => Math.cos(convertAngle(x, angleMode_, 'toRad')),
+    tan:  (x) => Math.tan(convertAngle(x, angleMode_, 'toRad')),
+    asin: (x) => convertAngle(Math.asin(x), angleMode_, 'fromRad'),
+    acos: (x) => convertAngle(Math.acos(x), angleMode_, 'fromRad'),
+    atan: (x) => convertAngle(Math.atan(x), angleMode_, 'fromRad'),
+  };
+
   let expr = trimmed;
 
   // ── Reemplazar funciones (orden: más largas primero) ──
@@ -92,17 +125,20 @@ function evaluateLocal(expression) {
   expr = expr.replace(/\bln\(/g,    'Math.log(');     // ln  = natural
 
   // Trigonométricas inversas e hiperbólicas (antes que las directas)
-  expr = expr.replace(/\basin\(/g,  'Math.asin(');
-  expr = expr.replace(/\bacos\(/g,  'Math.acos(');
-  expr = expr.replace(/\batan\(/g,  'Math.atan(');
+  // Trigonométricas INVERSAS (resultado en modo angular)
+  expr = expr.replace(/\basin\(/g,  '__trig.asin(');
+  expr = expr.replace(/\bacos\(/g,  '__trig.acos(');
+  expr = expr.replace(/\batan\(/g,  '__trig.atan(');
+
+  // Trigonométricas HIPERBÓLICAS (no afectadas por modo angular)
   expr = expr.replace(/\bsinh\(/g,  'Math.sinh(');
   expr = expr.replace(/\bcosh\(/g,  'Math.cosh(');
   expr = expr.replace(/\btanh\(/g,  'Math.tanh(');
 
-  // Trigonométricas directas
-  expr = expr.replace(/\bsin\(/g,   'Math.sin(');
-  expr = expr.replace(/\bcos\(/g,   'Math.cos(');
-  expr = expr.replace(/\btan\(/g,   'Math.tan(');
+  // Trigonométricas DIRECTAS (argumento en modo angular → radianes)
+  expr = expr.replace(/\bsin\(/g,   '__trig.sin(');
+  expr = expr.replace(/\bcos\(/g,   '__trig.cos(');
+  expr = expr.replace(/\btan\(/g,   '__trig.tan(');
 
   // Raíces, abs, exp
   expr = expr.replace(/\bsqrt\(/g,  'Math.sqrt(');
@@ -134,8 +170,8 @@ function evaluateLocal(expression) {
   let result;
   try {
     // new Function() es más seguro que eval(): no tiene acceso al scope local
-    const fn = new Function('Math', 'localFactorial', `"use strict"; return (${expr});`);
-    result = fn(Math, localFactorial);
+    const fn = new Function('Math', 'localFactorial', '__trig', `"use strict"; return (${expr});`);
+    result = fn(Math, localFactorial, __trig);
   } catch (e) {
     throw new Error(`Error al evaluar: ${e.message}`, { cause: e });
   }
@@ -368,13 +404,13 @@ export const api = {
    * @param {string} mode - CalcMode (Standard, Scientific, etc.)
    * @returns {Promise<{result: string, display: string, format: string}>}
    */
-  async evaluateExpression(expr, mode) {
+  async evaluateExpression(expr, mode, angleMode) {
     const invoke = await getInvoke();
     if (invoke) {
-      return invoke('evaluate_expression', { expr, mode });
+      return invoke('evaluate_expression', { expr, mode, angleMode: angleMode || 'Rad' });
     }
     // Fallback: evaluación local para desarrollo en navegador
-    return evaluateLocal(expr);
+    return evaluateLocal(expr, angleMode);
   },
 
   /**
