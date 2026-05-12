@@ -90,7 +90,7 @@
       <div class="flex gap-1.5">
         {#each hexDigits as btn, i (i)}
           <button
-            class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
+            class="flex-1 aspect-[2.4] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
             onclick={() => onKeyPress(btn.value)}
           >
             {btn.label}
@@ -103,7 +103,7 @@
     <div class="flex gap-1.5">
       {#each bitwiseOps as btn, i (i)}
         <button
-          class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
+          class="flex-1 aspect-[2.4] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
           onclick={() => onKeyPress(btn.value)}
         >
           {btn.label}
@@ -116,25 +116,25 @@
     <!-- Botones para modo Matriz: [, ], ,, ; -->
     <div class="flex gap-1.5">
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress('[')}
       >
         [
       </button>
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress(']')}
       >
         ]
       </button>
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress(',')}
       >
         ,
       </button>
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress(';')}
       >
         ;
@@ -146,35 +146,35 @@
     <!-- Botones para modo Complejo: i, conj, arg, real, imag -->
     <div class="flex gap-1.5">
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-bold cursor-pointer select-none transition-all duration-150 bg-purple-500 dark:bg-purple-600 hover:bg-purple-400 dark:hover:bg-purple-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-xl font-bold cursor-pointer select-none transition-all duration-150 bg-purple-500 dark:bg-purple-600 hover:bg-purple-400 dark:hover:bg-purple-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress('i')}
         title="Unidad imaginaria i"
       >
         i
       </button>
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress('conj(')}
         title="Conjugado"
       >
         conj
       </button>
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress('arg(')}
         title="Argumento (fase)"
       >
         arg
       </button>
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress('real(')}
         title="Parte real"
       >
         real
       </button>
       <button
-        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        class="flex-1 aspect-[2.4] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
         onclick={() => onKeyPress('imag(')}
         title="Parte imaginaria"
       >
@@ -188,7 +188,7 @@
     <div class="flex gap-1.5">
       {#each row as btn, j (j)}
         <button
-          class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
+          class="flex-1 aspect-[2.4] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
           onclick={() => onKeyPress(btn.value)}
         >
           {btn.label}

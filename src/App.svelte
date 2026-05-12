@@ -157,8 +157,9 @@
 
 <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col max-w-[420px] mx-auto w-full">
   <!-- Cabecera: selector de modo + toggle de tema + conversor -->
-  <div class="flex items-start px-2 pt-2 gap-1">
-    <div class="flex-1 min-w-0">
+  <div class="px-2 pt-2 flex flex-col gap-0.5">
+    <!-- Fila 1: Modos + Ángulos -->
+    <div class="flex items-center gap-1">
       <ModeSelector
         currentMode={state.mode}
         currentAngleMode={state.angleMode}
@@ -168,23 +169,36 @@
         onPrecisionChange={handlePrecisionChange}
       />
     </div>
-    <button
-      onclick={toggleUnitConverter}
-      class="flex-shrink-0 p-2 text-xl leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-      class:bg-blue-100={showUnitConverter}
-      class:dark:bg-blue-900={showUnitConverter}
-      aria-label="Toggle unit converter"
-      title="Conversor de unidades"
-    >
-      ⇄
-    </button>
-    <button
-      onclick={toggleTheme}
-      class="flex-shrink-0 p-2 text-xl leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-      aria-label="Toggle theme"
-    >
-      {state.theme === 'dark' ? '☀️' : '🌙'}
-    </button>
+    <!-- Fila 2: Precisión + ⇄ + Tema -->
+    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+      <span>Precision:</span>
+      <select
+        value={state.precision}
+        onchange={(e) => handlePrecisionChange(Number(e.target.value))}
+        class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-400 dark:border-gray-600 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+      >
+        {#each Array.from({ length: 16 }, (_, i) => i) as val}
+          <option value={val}>{val}</option>
+        {/each}
+      </select>
+      <button
+        onclick={toggleUnitConverter}
+        class="ml-auto p-1.5 text-lg leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        class:bg-blue-100={showUnitConverter}
+        class:dark:bg-blue-900={showUnitConverter}
+        aria-label="Toggle unit converter"
+        title="Conversor de unidades"
+      >
+        ⇄
+      </button>
+      <button
+        onclick={toggleTheme}
+        class="p-1.5 text-lg leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        aria-label="Toggle theme"
+      >
+        {state.theme === 'dark' ? '☀️' : '🌙'}
+      </button>
+    </div>
   </div>
 
   <!-- Display: expresión + resultado + indicadores -->

@@ -1,16 +1,14 @@
 <script>
   /**
-   * ModeSelector.svelte - Selector de modo de calculadora, modo angular y precisión.
+   * ModeSelector.svelte - Selector de modo de calculadora y modo angular.
    * Permite elegir entre Standard, Scientific, Programmer, etc.
-   * También alterna entre Deg, Rad, Grad y ajusta precisión decimal.
+   * También alterna entre Deg, Rad, Grad.
    */
   const {
     currentMode = 'Standard',
     currentAngleMode = 'Deg',
-    precision = 10,
     onModeChange = () => {},
     onAngleModeChange = () => {},
-    onPrecisionChange = () => {},
   } = $props();
 
   const modes = [
@@ -29,9 +27,7 @@
   ];
 </script>
 
-<div class="flex flex-col gap-1">
-  <!-- Fila superior: modo y ángulo -->
-  <div class="flex justify-between items-center gap-1.5">
+<div class="flex justify-between items-center gap-1.5">
     <div class="flex gap-0.5">
       {#each modes as mode, i (i)}
         <button
@@ -66,18 +62,3 @@
       {/each}
     </div>
   </div>
-
-  <!-- Fila inferior: control de precisión -->
-  <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-    <span>Precision:</span>
-    <select
-      value={precision}
-      onchange={(e) => onPrecisionChange(Number(e.target.value))}
-      class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-400 dark:border-gray-600 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-    >
-      {#each Array.from({ length: 16 }, (_, i) => i) as val}
-        <option value={val}>{val}</option>
-      {/each}
-    </select>
-  </div>
-</div>
