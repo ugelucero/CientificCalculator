@@ -38,6 +38,13 @@ pub enum Token {
     E,
     Ans,
     Comma,
+    /// Operadores bitwise.
+    BitAnd,
+    BitOr,
+    BitNot,
+    Shl,
+    Shr,
+    Xor,
 }
 
 /// Convierte una cadena de expresión en un vector de tokens.
@@ -59,7 +66,13 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, CalcError> {
             | Some(Token::Caret)
             | Some(Token::Percent)
             | Some(Token::LParen)
-            | Some(Token::Comma) => true,
+            | Some(Token::Comma)
+            | Some(Token::BitAnd)
+            | Some(Token::BitOr)
+            | Some(Token::BitNot)
+            | Some(Token::Shl)
+            | Some(Token::Shr)
+            | Some(Token::Xor) => true,
             _ => false,
         }
     }
@@ -71,6 +84,83 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, CalcError> {
         if ch.is_whitespace() {
             pos += 1;
             continue;
+        }
+
+        // Prefijos de base: 0x (hex), 0o (oct), 0b (bin)
+        if ch == '0' && pos + 1 < len {
+            let next = chars[pos + 1];
+            if next == 'x' || next == 'X' {
+                pos += 2;
+                let start = pos;
+                while pos < len && chars[pos].is_ascii_hexdigit() {
+                    pos += 1;
+                }
+                if pos == start {
+                    return Err(CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Número hexadecimal sin dígitos en posición {}", start - 2),
+                    )
+                    .with_position(start - 2));
+                }
+                let hex_str: String = chars[start..pos].iter().collect();
+                let num = i64::from_str_radix(&hex_str, 16).map_err(|_| {
+                    CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Número hexadecimal inválido '0x{}' en posición {}", hex_str, start - 2),
+                    )
+                    .with_position(start - 2)
+                })? as f64;
+                tokens.push(Token::Number(num));
+                continue;
+            }
+            if next == 'o' || next == 'O' {
+                pos += 2;
+                let start = pos;
+                while pos < len && chars[pos] >= '0' && chars[pos] <= '7' {
+                    pos += 1;
+                }
+                if pos == start {
+                    return Err(CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Número octal sin dígitos en posición {}", start - 2),
+                    )
+                    .with_position(start - 2));
+                }
+                let oct_str: String = chars[start..pos].iter().collect();
+                let num = i64::from_str_radix(&oct_str, 8).map_err(|_| {
+                    CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Número octal inválido '0o{}' en posición {}", oct_str, start - 2),
+                    )
+                    .with_position(start - 2)
+                })? as f64;
+                tokens.push(Token::Number(num));
+                continue;
+            }
+            if next == 'b' || next == 'B' {
+                pos += 2;
+                let start = pos;
+                while pos < len && (chars[pos] == '0' || chars[pos] == '1') {
+                    pos += 1;
+                }
+                if pos == start {
+                    return Err(CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Número binario sin dígitos en posición {}", start - 2),
+                    )
+                    .with_position(start - 2));
+                }
+                let bin_str: String = chars[start..pos].iter().collect();
+                let num = i64::from_str_radix(&bin_str, 2).map_err(|_| {
+                    CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Número binario inválido '0b{}' en posición {}", bin_str, start - 2),
+                    )
+                    .with_position(start - 2)
+                })? as f64;
+                tokens.push(Token::Number(num));
+                continue;
+            }
         }
 
         // Números (incluyendo notación científica y negativos unarios)
@@ -244,6 +334,45 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, CalcError> {
                 pos += 1;
                 continue;
             }
+            '&' => {
+                tokens.push(Token::BitAnd);
+                pos += 1;
+                continue;
+            }
+            '|' => {
+                tokens.push(Token::BitOr);
+                pos += 1;
+                continue;
+            }
+            '~' => {
+                tokens.push(Token::BitNot);
+                pos += 1;
+                continue;
+            }
+            '<' => {
+                if pos + 1 < len && chars[pos + 1] == '<' {
+                    tokens.push(Token::Shl);
+                    pos += 2;
+                } else {
+                    return Err(CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Operador '<' no soportado en posición {}", pos),
+                    ).with_position(pos));
+                }
+                continue;
+            }
+            '>' => {
+                if pos + 1 < len && chars[pos + 1] == '>' {
+                    tokens.push(Token::Shr);
+                    pos += 2;
+                } else {
+                    return Err(CalcError::new(
+                        ErrorKind::ParseError,
+                        format!("Operador '>' no soportado en posición {}", pos),
+                    ).with_position(pos));
+                }
+                continue;
+            }
             _ => {}
         }
 
@@ -278,6 +407,7 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, CalcError> {
                 "pi" => tokens.push(Token::Pi),
                 "e" => tokens.push(Token::E),
                 "ans" => tokens.push(Token::Ans),
+                "xor" => tokens.push(Token::Xor),
                 _ => {
                     return Err(CalcError::new(
                         ErrorKind::ParseError,
@@ -495,6 +625,147 @@ mod tests {
                 Token::LParen,
                 Token::Number(0.0),
                 Token::RParen,
+            ]
+        );
+    }
+
+    // ─── Prefijos de base ─────────────────────────────────────────────
+
+    #[test]
+    fn test_hex_prefix() {
+        let tokens = tokenize("0xFF").unwrap();
+        assert_eq!(tokens, vec![Token::Number(255.0)]);
+    }
+
+    #[test]
+    fn test_hex_lowercase() {
+        let tokens = tokenize("0xff").unwrap();
+        assert_eq!(tokens, vec![Token::Number(255.0)]);
+    }
+
+    #[test]
+    fn test_hex_mixed_case() {
+        let tokens = tokenize("0x1A2b").unwrap();
+        assert_eq!(tokens, vec![Token::Number(6699.0)]);
+    }
+
+    #[test]
+    fn test_oct_prefix() {
+        let tokens = tokenize("0o77").unwrap();
+        assert_eq!(tokens, vec![Token::Number(63.0)]);
+    }
+
+    #[test]
+    fn test_oct_uppercase() {
+        let tokens = tokenize("0O10").unwrap();
+        assert_eq!(tokens, vec![Token::Number(8.0)]);
+    }
+
+    #[test]
+    fn test_bin_prefix() {
+        let tokens = tokenize("0b1010").unwrap();
+        assert_eq!(tokens, vec![Token::Number(10.0)]);
+    }
+
+    #[test]
+    fn test_bin_uppercase() {
+        let tokens = tokenize("0B0101").unwrap();
+        assert_eq!(tokens, vec![Token::Number(5.0)]);
+    }
+
+    #[test]
+    fn test_bin_large() {
+        let tokens = tokenize("0b11111111111111111111111111111111").unwrap();
+        assert_eq!(tokens, vec![Token::Number(4294967295.0)]);
+    }
+
+    #[test]
+    fn test_hex_no_digits_error() {
+        let result = tokenize("0x");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_oct_no_digits_error() {
+        let result = tokenize("0o");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_bin_no_digits_error() {
+        let result = tokenize("0b");
+        assert!(result.is_err());
+    }
+
+    // ─── Operadores bitwise ─────────────────────────────────────────────
+
+    #[test]
+    fn test_bitwise_and() {
+        let tokens = tokenize("5 & 3").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Number(5.0),
+                Token::BitAnd,
+                Token::Number(3.0),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_bitwise_or() {
+        let tokens = tokenize("5 | 3").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Number(5.0),
+                Token::BitOr,
+                Token::Number(3.0),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_bitwise_not() {
+        let tokens = tokenize("~5").unwrap();
+        assert_eq!(tokens, vec![Token::BitNot, Token::Number(5.0)]);
+    }
+
+    #[test]
+    fn test_shift_left() {
+        let tokens = tokenize("1 << 4").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Number(1.0),
+                Token::Shl,
+                Token::Number(4.0),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_shift_right() {
+        let tokens = tokenize("16 >> 2").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Number(16.0),
+                Token::Shr,
+                Token::Number(2.0),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_xor_keyword() {
+        let tokens = tokenize("5 xor 3").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Number(5.0),
+                Token::Xor,
+                Token::Number(3.0),
             ]
         );
     }

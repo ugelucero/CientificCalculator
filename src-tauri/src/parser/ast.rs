@@ -9,11 +9,15 @@
 //!
 //! | Nivel | Operadores              | Asociatividad |
 //! |-------|-------------------------|---------------|
-//! | 1     | +, -                    | Izquierda     |
-//! | 2     | *, /, %                 | Izquierda     |
-//! | 3     | ^                       | Derecha       |
-//! | 4     | Funciones               | —             |
-//! | 5     | - unario, ! factorial   | —             |
+//! | 1     | Bitwise OR              | Izquierda     |
+//! | 2     | Bitwise XOR             | Izquierda     |
+//! | 3     | Bitwise AND             | Izquierda     |
+//! | 4     | <<, >>                  | Izquierda     |
+//! | 5     | +, -                    | Izquierda     |
+//! | 6     | *, /, %                 | Izquierda     |
+//! | 7     | ^                       | Derecha       |
+//! | 8     | Funciones               | —             |
+//! | 9     | - unario, ~, ! factorial| —             |
 
 use crate::models::errors::{CalcError, ErrorKind};
 use crate::parser::tokenizer::Token;
@@ -50,6 +54,7 @@ pub enum AstNode {
 pub enum UnaryOperator {
     Negate,
     Factorial,
+    BitNot,
 }
 
 /// Operadores binarios.
@@ -61,6 +66,11 @@ pub enum BinaryOperator {
     Div,
     Pow,
     Mod,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
 }
 
 // ─── Precedencia ───────────────────────────────────────────────────────────
@@ -68,9 +78,13 @@ pub enum BinaryOperator {
 /// Nivel de precedencia de un operador binario (mayor = más prioritario).
 fn binary_precedence(op: &BinaryOperator) -> u8 {
     match op {
-        BinaryOperator::Add | BinaryOperator::Sub => 1,
-        BinaryOperator::Mul | BinaryOperator::Div | BinaryOperator::Mod => 2,
-        BinaryOperator::Pow => 3,
+        BinaryOperator::BitOr => 1,
+        BinaryOperator::BitXor => 2,
+        BinaryOperator::BitAnd => 3,
+        BinaryOperator::Shl | BinaryOperator::Shr => 4,
+        BinaryOperator::Add | BinaryOperator::Sub => 5,
+        BinaryOperator::Mul | BinaryOperator::Div | BinaryOperator::Mod => 6,
+        BinaryOperator::Pow => 7,
     }
 }
 
@@ -317,9 +331,16 @@ pub fn shunting_yard(tokens: &[Token]) -> Result<Vec<AstNode>, CalcError> {
                 });
             }
 
+            // ── Negación bitwise (siempre prefijo unario) ────────────
+            Token::BitNot => {
+                op_stack.push(StackItem::UnaryOp(UnaryOperator::BitNot));
+            }
+
             // ── Operadores ──────────────────────────────────────────────
             Token::Plus | Token::Minus | Token::Star | Token::Slash
-            | Token::Caret | Token::Percent => {
+            | Token::Caret | Token::Percent
+            | Token::BitAnd | Token::BitOr | Token::Xor
+            | Token::Shl | Token::Shr => {
                 let is_unary_minus =
                     *token == Token::Minus && is_unary_context(idx, tokens);
 
@@ -378,6 +399,11 @@ fn token_to_binary_op(token: &Token) -> BinaryOperator {
         Token::Slash => BinaryOperator::Div,
         Token::Caret => BinaryOperator::Pow,
         Token::Percent => BinaryOperator::Mod,
+        Token::BitAnd => BinaryOperator::BitAnd,
+        Token::BitOr => BinaryOperator::BitOr,
+        Token::Xor => BinaryOperator::BitXor,
+        Token::Shl => BinaryOperator::Shl,
+        Token::Shr => BinaryOperator::Shr,
         _ => unreachable!("token_to_binary_op llamado con {:?}", token),
     }
 }

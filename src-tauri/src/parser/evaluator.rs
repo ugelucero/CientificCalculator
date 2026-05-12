@@ -131,6 +131,17 @@ fn eval_binary_op(op: &BinaryOperator, left: f64, right: f64) -> Result<f64, Cal
             }
         }
         BinaryOperator::Pow => Ok(left.powf(right)),
+        BinaryOperator::BitAnd => Ok(((left as i64) & (right as i64)) as f64),
+        BinaryOperator::BitOr => Ok(((left as i64) | (right as i64)) as f64),
+        BinaryOperator::BitXor => Ok(((left as i64) ^ (right as i64)) as f64),
+        BinaryOperator::Shl => {
+            let shift = right as u32;
+            Ok(((left as i64) << shift) as f64)
+        }
+        BinaryOperator::Shr => {
+            let shift = right as u32;
+            Ok(((left as i64) >> shift) as f64)
+        }
     }
 }
 
@@ -139,6 +150,7 @@ fn eval_unary_op(op: &UnaryOperator, operand: f64) -> Result<f64, CalcError> {
     match op {
         UnaryOperator::Negate => Ok(-operand),
         UnaryOperator::Factorial => factorial(operand),
+        UnaryOperator::BitNot => Ok(!(operand as i64) as f64),
     }
 }
 
@@ -748,6 +760,67 @@ mod tests {
         // -sin(0) = -0 = 0
         let result = eval("-sin(0)", AngleMode::Rad).unwrap();
         assert!(result.abs() < 1e-10);
+    }
+
+    // ─── Operaciones bitwise ────────────────────────────────────────
+
+    #[test]
+    fn test_bitwise_and() {
+        assert!((eval("5 & 3", AngleMode::Rad).unwrap() - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bitwise_or() {
+        assert!((eval("5 | 3", AngleMode::Rad).unwrap() - 7.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bitwise_xor() {
+        assert!((eval("5 xor 3", AngleMode::Rad).unwrap() - 6.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bitwise_not() {
+        // ~0 = -1 (en complemento a 2)
+        assert!((eval("~0", AngleMode::Rad).unwrap() + 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_shift_left() {
+        assert!((eval("1 << 4", AngleMode::Rad).unwrap() - 16.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_shift_right() {
+        assert!((eval("16 >> 2", AngleMode::Rad).unwrap() - 4.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_hex_literal_ff() {
+        assert!((eval("0xFF", AngleMode::Rad).unwrap() - 255.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bin_or() {
+        // 0b1010 | 0b0101 = 15
+        assert!((eval("0b1010 | 0b0101", AngleMode::Rad).unwrap() - 15.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_oct_literal() {
+        assert!((eval("0o77", AngleMode::Rad).unwrap() - 63.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bitwise_precedence() {
+        // 1 << 2 + 3: shift tiene menor precedencia que +, así que es 1 << 5 = 32
+        assert!((eval("1 << 2 + 3", AngleMode::Rad).unwrap() - 32.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bitwise_and_vs_or_precedence() {
+        // 1 | 2 & 3 = 1 | (2 & 3) = 1 | 2 = 3  (& mayor precedencia que |)
+        assert!((eval("1 | 2 & 3", AngleMode::Rad).unwrap() - 3.0).abs() < 1e-10);
     }
 
     // ─── Combinaciones complejas ─────────────────────────────────────

@@ -34,7 +34,7 @@ pub fn evaluate_expression(
     // Evaluar la expresión pasando el last_answer actual para `ans`.
     let result = parser::evaluate(&expr, angle_mode, last_answer)?;
 
-    let formatted = format_result(result);
+    let formatted = format_result_for_mode(result, &mode);
 
     // Generar ID único y timestamp para la entrada de historial.
     let history_id = uuid::Uuid::new_v4().to_string();
@@ -72,6 +72,26 @@ pub fn evaluate_expression(
         display: expr,
         format: FormatType::Decimal,
     })
+}
+
+/// Formatea el resultado según el modo de la calculadora.
+fn format_result_for_mode(value: f64, mode: &CalcMode) -> String {
+    match mode {
+        CalcMode::Programmer => format_programmer_result(value),
+        _ => format_result(value),
+    }
+}
+
+/// Formatea el resultado para modo Programador: muestra el valor en las 4 bases.
+fn format_programmer_result(value: f64) -> String {
+    let value = if value == 0.0 { 0.0 } else { value };
+    let int_val = value as i64;
+    let u32_val = int_val as u32;
+    let dec_str = format!("{}", int_val);
+    let hex_str = format!("0x{:X}", u32_val);
+    let oct_str = format!("0o{:o}", u32_val);
+    let bin_str = format!("0b{:b}", u32_val);
+    format!("{}  |  {}  |  {}  |  {}", hex_str, dec_str, oct_str, bin_str)
 }
 
 /// Formatea el resultado numérico como string.
