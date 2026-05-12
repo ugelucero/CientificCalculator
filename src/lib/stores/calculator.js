@@ -148,8 +148,9 @@ function createCalculatorStore() {
           // Operador: encadenar desde el resultado
           expr = state.result;
         } else if (value.endsWith('(') && value.length > 1) {
-          // Función: envolver el resultado como argumento: sin(5, cos(3, etc.
-          expr = value + state.result;
+          // Función: envolver el resultado como argumento: log(100), sin(5)
+          justEvaluated = false;
+          return { ...state, expression: value + state.result + ')', error: null };
         } else {
           // Dígito, constante, etc.: empezar de cero
           expr = '';
