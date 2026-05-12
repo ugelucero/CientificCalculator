@@ -147,8 +147,11 @@ function createCalculatorStore() {
         if (['+', '-', '*', '/', '^', '%'].includes(value)) {
           // Operador: encadenar desde el resultado
           expr = state.result;
+        } else if (value.endsWith('(') && value.length > 1) {
+          // Función: envolver el resultado como argumento: sin(5, cos(3, etc.
+          expr = value + state.result;
         } else {
-          // Dígito, función, constante, etc.: empezar de cero
+          // Dígito, constante, etc.: empezar de cero
           expr = '';
         }
         justEvaluated = false;
