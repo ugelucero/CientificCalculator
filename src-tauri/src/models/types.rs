@@ -55,7 +55,7 @@ pub struct HistoryEntry {
 }
 
 /// Categoría de unidad para conversiones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub enum UnitCategory {
     Length,
@@ -71,7 +71,7 @@ pub enum UnitCategory {
     Angle,
 }
 
-/// Unidad de medida para conversiones.
+/// Unidad de medida para conversiones (legado, mantenido por compatibilidad).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Unit {
@@ -79,6 +79,40 @@ pub struct Unit {
     pub name: String,
     pub symbol: String,
     pub to_base_factor: f64,
+}
+
+/// Información completa de una unidad para el registro de conversiones.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct UnitInfo {
+    pub name: String,
+    pub symbol: String,
+    pub category: UnitCategory,
+    /// Factor multiplicativo hacia la unidad SI base.
+    pub to_si: f64,
+    /// Desplazamiento (ej: Celsius → Kelvin: +273.15).
+    pub offset: f64,
+    /// false para temperatura (no lineal), true para el resto.
+    pub is_linear: bool,
+}
+
+/// Petición de conversión de unidades.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConversionRequest {
+    pub value: f64,
+    pub from_unit: String,
+    pub to_unit: String,
+}
+
+/// Resultado de una conversión de unidades.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConversionResult {
+    pub value: f64,
+    pub formatted: String,
+    pub from: String,
+    pub to: String,
 }
 
 /// Matriz para operaciones de álgebra lineal.

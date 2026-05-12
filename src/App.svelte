@@ -10,9 +10,13 @@
   import ScientificKeys from './lib/components/ScientificKeys.svelte';
   import History from './lib/components/History.svelte';
   import ModeSelector from './lib/components/ModeSelector.svelte';
+  import UnitConverter from './lib/components/UnitConverter.svelte';
 
   /** Estado reactivo derivado de la store */
   const state = $derived($calculator);
+
+  /** Mostrar/ocultar panel de conversión de unidades */
+  let showUnitConverter = $state(false);
 
   /** Sincroniza la clase `dark` en <html> con el tema actual */
   $effect(() => {
@@ -134,13 +138,18 @@
   function toggleTheme() {
     calculator.toggleTheme();
   }
+
+  /** Toggle del panel de conversión de unidades */
+  function toggleUnitConverter() {
+    showUnitConverter = !showUnitConverter;
+  }
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
 
 <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col max-w-[420px] mx-auto w-full">
-  <!-- Cabecera: selector de modo + toggle de tema -->
-  <div class="flex items-start px-2 pt-2">
+  <!-- Cabecera: selector de modo + toggle de tema + conversor -->
+  <div class="flex items-start px-2 pt-2 gap-1">
     <div class="flex-1 min-w-0">
       <ModeSelector
         currentMode={state.mode}
@@ -151,6 +160,16 @@
         onPrecisionChange={handlePrecisionChange}
       />
     </div>
+    <button
+      onclick={toggleUnitConverter}
+      class="flex-shrink-0 p-2 text-xl leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      class:bg-blue-100={showUnitConverter}
+      class:dark:bg-blue-900={showUnitConverter}
+      aria-label="Toggle unit converter"
+      title="Conversor de unidades"
+    >
+      ⇄
+    </button>
     <button
       onclick={toggleTheme}
       class="flex-shrink-0 p-2 text-xl leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -170,6 +189,13 @@
     mode={state.mode}
     precision={state.precision}
   />
+
+  <!-- Panel de conversión de unidades (toggle) -->
+  {#if showUnitConverter}
+    <div class="px-2 pb-1">
+      <UnitConverter />
+    </div>
+  {/if}
 
   <!-- Panel de teclas científicas expandible -->
   <ScientificKeys

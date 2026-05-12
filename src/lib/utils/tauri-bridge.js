@@ -189,6 +189,173 @@ export function resetLastAnswer() {
   lastAnswer = 0;
 }
 
+// ─── Conversor local (fallback para desarrollo) ────────────────────────────
+
+/**
+ * Registro de unidades para el fallback local.
+ * Cada entrada: { category, toSi, offset, isLinear }
+ */
+const LOCAL_UNITS = {
+  // Length (base: m)
+  mm:    { category: 'Length', toSi: 0.001, offset: 0, isLinear: true },
+  cm:    { category: 'Length', toSi: 0.01, offset: 0, isLinear: true },
+  m:     { category: 'Length', toSi: 1.0, offset: 0, isLinear: true },
+  km:    { category: 'Length', toSi: 1000.0, offset: 0, isLinear: true },
+  in:   { category: 'Length', toSi: 0.0254, offset: 0, isLinear: true },
+  ft:    { category: 'Length', toSi: 0.3048, offset: 0, isLinear: true },
+  yd:    { category: 'Length', toSi: 0.9144, offset: 0, isLinear: true },
+  mi:    { category: 'Length', toSi: 1609.344, offset: 0, isLinear: true },
+  // Mass (base: kg)
+  mg:    { category: 'Mass', toSi: 1e-6, offset: 0, isLinear: true },
+  g:     { category: 'Mass', toSi: 0.001, offset: 0, isLinear: true },
+  kg:    { category: 'Mass', toSi: 1.0, offset: 0, isLinear: true },
+  ton:   { category: 'Mass', toSi: 1000.0, offset: 0, isLinear: true },
+  lb:    { category: 'Mass', toSi: 0.45359237, offset: 0, isLinear: true },
+  oz:    { category: 'Mass', toSi: 0.028349523125, offset: 0, isLinear: true },
+  // Temperature (base: K, non-linear)
+  C:     { category: 'Temperature', toSi: 1.0, offset: 273.15, isLinear: false },
+  F:     { category: 'Temperature', toSi: 5 / 9, offset: 459.67, isLinear: false },
+  K:     { category: 'Temperature', toSi: 1.0, offset: 0, isLinear: false },
+  // Volume (base: L)
+  mL:    { category: 'Volume', toSi: 0.001, offset: 0, isLinear: true },
+  L:     { category: 'Volume', toSi: 1.0, offset: 0, isLinear: true },
+  gal:   { category: 'Volume', toSi: 3.78541, offset: 0, isLinear: true },
+  fl_oz: { category: 'Volume', toSi: 0.0295735, offset: 0, isLinear: true },
+  cup:   { category: 'Volume', toSi: 0.236588, offset: 0, isLinear: true },
+  pt:    { category: 'Volume', toSi: 0.473176, offset: 0, isLinear: true },
+  qt:    { category: 'Volume', toSi: 0.946353, offset: 0, isLinear: true },
+  // Area (base: m²)
+  mm2:   { category: 'Area', toSi: 1e-6, offset: 0, isLinear: true },
+  cm2:   { category: 'Area', toSi: 0.0001, offset: 0, isLinear: true },
+  m2:    { category: 'Area', toSi: 1.0, offset: 0, isLinear: true },
+  km2:   { category: 'Area', toSi: 1e6, offset: 0, isLinear: true },
+  ha:    { category: 'Area', toSi: 10000.0, offset: 0, isLinear: true },
+  acre:  { category: 'Area', toSi: 4046.8564224, offset: 0, isLinear: true },
+  ft2:   { category: 'Area', toSi: 0.09290304, offset: 0, isLinear: true },
+  in2:   { category: 'Area', toSi: 0.00064516, offset: 0, isLinear: true },
+  // Time (base: s)
+  ms:    { category: 'Time', toSi: 0.001, offset: 0, isLinear: true },
+  s:     { category: 'Time', toSi: 1.0, offset: 0, isLinear: true },
+  min:   { category: 'Time', toSi: 60.0, offset: 0, isLinear: true },
+  h:     { category: 'Time', toSi: 3600.0, offset: 0, isLinear: true },
+  day:   { category: 'Time', toSi: 86400.0, offset: 0, isLinear: true },
+  week:  { category: 'Time', toSi: 604800.0, offset: 0, isLinear: true },
+  year:  { category: 'Time', toSi: 31557600.0, offset: 0, isLinear: true },
+  // Speed (base: m/s)
+  'm/s': { category: 'Speed', toSi: 1.0, offset: 0, isLinear: true },
+  'km/h':{ category: 'Speed', toSi: 1 / 3.6, offset: 0, isLinear: true },
+  mph:   { category: 'Speed', toSi: 0.44704, offset: 0, isLinear: true },
+  kn:    { category: 'Speed', toSi: 0.514444444, offset: 0, isLinear: true },
+  // Pressure (base: Pa)
+  Pa:    { category: 'Pressure', toSi: 1.0, offset: 0, isLinear: true },
+  kPa:   { category: 'Pressure', toSi: 1000.0, offset: 0, isLinear: true },
+  MPa:   { category: 'Pressure', toSi: 1e6, offset: 0, isLinear: true },
+  bar:   { category: 'Pressure', toSi: 100000.0, offset: 0, isLinear: true },
+  atm:   { category: 'Pressure', toSi: 101325.0, offset: 0, isLinear: true },
+  psi:   { category: 'Pressure', toSi: 6894.75729, offset: 0, isLinear: true },
+  mmHg:  { category: 'Pressure', toSi: 133.322368, offset: 0, isLinear: true },
+  // Energy (base: J)
+  J:     { category: 'Energy', toSi: 1.0, offset: 0, isLinear: true },
+  kJ:    { category: 'Energy', toSi: 1000.0, offset: 0, isLinear: true },
+  cal:   { category: 'Energy', toSi: 4.184, offset: 0, isLinear: true },
+  kcal:  { category: 'Energy', toSi: 4184.0, offset: 0, isLinear: true },
+  Wh:    { category: 'Energy', toSi: 3600.0, offset: 0, isLinear: true },
+  kWh:   { category: 'Energy', toSi: 3.6e6, offset: 0, isLinear: true },
+  eV:    { category: 'Energy', toSi: 1.602176634e-19, offset: 0, isLinear: true },
+  // Data (base: byte)
+  bit:   { category: 'Data', toSi: 0.125, offset: 0, isLinear: true },
+  B:     { category: 'Data', toSi: 1.0, offset: 0, isLinear: true },
+  KB:    { category: 'Data', toSi: 1000.0, offset: 0, isLinear: true },
+  MB:    { category: 'Data', toSi: 1e6, offset: 0, isLinear: true },
+  GB:    { category: 'Data', toSi: 1e9, offset: 0, isLinear: true },
+  TB:    { category: 'Data', toSi: 1e12, offset: 0, isLinear: true },
+};
+
+/**
+ * Convierte temperatura entre C, F, K con fórmulas directas.
+ */
+function convertTemperatureLocal(value, fromSym, toSym) {
+  const formulas = {
+    'C-F': (v) => v * 9 / 5 + 32,
+    'C-K': (v) => v + 273.15,
+    'F-C': (v) => (v - 32) * 5 / 9,
+    'F-K': (v) => (v + 459.67) * 5 / 9,
+    'K-C': (v) => v - 273.15,
+    'K-F': (v) => v * 9 / 5 - 459.67,
+  };
+  const key = `${fromSym}-${toSym}`;
+  if (formulas[key]) return formulas[key](value);
+  return value; // same unit
+}
+
+/**
+ * Formatea un valor numérico para display.
+ */
+function formatValueLocal(value) {
+  if (!Number.isFinite(value)) return value > 0 ? '∞' : '-∞';
+  if (Number.isNaN(value)) return 'NaN';
+
+  const abs = Math.abs(value);
+  if (abs >= 1e12 || (abs < 1e-10 && abs > 0)) {
+    return value.toExponential(6);
+  }
+  if (Number.isInteger(value) && abs < 1e12) {
+    return String(value);
+  }
+  // Eliminar ceros finales
+  const s = value.toPrecision(12);
+  return s.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+}
+
+/**
+ * Conversor local de unidades (fallback para desarrollo).
+ * Soporta las mismas 10 categorías que el backend Rust.
+ *
+ * @param {number} value
+ * @param {string} fromUnit - símbolo de la unidad origen
+ * @param {string} toUnit - símbolo de la unidad destino
+ * @returns {{ value: number, formatted: string, from: string, to: string }}
+ */
+function convertUnitsLocal(value, fromUnit, toUnit) {
+  const fromKey = fromUnit.toLowerCase();
+  const toKey = toUnit.toLowerCase();
+
+  // Buscar unidades (case-insensitive), conservando el símbolo canónico
+  const fromMatch = LOCAL_UNITS[fromKey]
+    ? [fromKey, LOCAL_UNITS[fromKey]]
+    : Object.entries(LOCAL_UNITS).find(([k]) => k.toLowerCase() === fromKey);
+  const toMatch = LOCAL_UNITS[toKey]
+    ? [toKey, LOCAL_UNITS[toKey]]
+    : Object.entries(LOCAL_UNITS).find(([k]) => k.toLowerCase() === toKey);
+
+  if (!fromMatch) throw new Error(`Unidad desconocida: '${fromUnit}'`);
+  if (!toMatch) throw new Error(`Unidad desconocida: '${toUnit}'`);
+
+  const [fromSym, fromEntry] = fromMatch;
+  const [toSym, toEntry] = toMatch;
+
+  if (fromEntry.category !== toEntry.category) {
+    throw new Error(
+      `No se puede convertir '${fromUnit}' (${fromEntry.category}) a '${toUnit}' (${toEntry.category}): categorías incompatibles`
+    );
+  }
+
+  let result;
+  if (fromEntry.category === 'Temperature') {
+    result = convertTemperatureLocal(value, fromSym, toSym);
+  } else {
+    // Fórmula lineal: (value * from.toSi + from.offset) / to.toSi - to.offset
+    result = (value * fromEntry.toSi + fromEntry.offset) / toEntry.toSi - toEntry.offset;
+  }
+
+  return {
+    value: result,
+    formatted: formatValueLocal(result),
+    from: fromUnit,
+    to: toUnit,
+  };
+}
+
 // ─── API de comandos Tauri ──────────────────────────────────────────────────
 
 export const api = {
@@ -210,10 +377,23 @@ export const api = {
     return evaluateLocal(expr);
   },
 
-  async convertUnits(value, from, to) {
+  /**
+   * Convierte un valor entre dos unidades.
+   *
+   * @param {{ value: number, fromUnit: string, toUnit: string }} request
+   * @returns {Promise<{ value: number, formatted: string, from: string, to: string }>}
+   */
+  async convertUnits({ value, fromUnit, toUnit }) {
     const invoke = await getInvoke();
-    if (!invoke) throw new Error('Tauri API not available');
-    return invoke('convert_units', { value, from, to });
+    if (invoke) {
+      return invoke('convert_units', {
+        value,
+        fromUnit,
+        toUnit,
+      });
+    }
+    // Fallback local para desarrollo en navegador
+    return convertUnitsLocal(value, fromUnit, toUnit);
   },
 
   async getHistory() {

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Clasificación del tipo de error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub enum ErrorKind {
     DivisionByZero,
@@ -11,6 +11,7 @@ pub enum ErrorKind {
     InvalidMode,
     DimensionMismatch,
     UndefinedVariable,
+    InvalidConversion,
     InternalError,
 }
 
