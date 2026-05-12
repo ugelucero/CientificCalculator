@@ -1,26 +1,74 @@
+use std::sync::Mutex;
+
 use crate::models::errors::CalcError;
-use crate::models::types::{AngleMode, CalcMode, ExpressionResult, FormatType};
+use crate::models::state::AppState;
+use crate::models::types::{CalcMode, ExpressionResult, FormatType, HistoryEntry};
 use crate::parser;
+use crate::persistence;
 
 /// Evalúa una expresión matemática y retorna el resultado formateado.
 /// Es el comando núcleo de la calculadora.
+///
+/// Efectos secundarios:
+/// - Actualiza `last_answer` en el estado.
+/// - Agrega una entrada al historial.
+/// - Persiste el estado a disco.
 #[tauri::command]
 pub fn evaluate_expression(
     expr: String,
     mode: CalcMode,
+    state: tauri::State<'_, Mutex<AppState>>,
+    app_handle: tauri::AppHandle,
 ) -> Result<ExpressionResult, CalcError> {
-    // Por ahora usamos Rad como modo angular por defecto.
-    // En Fase 2 se usará el AppState global para obtener el angle_mode real.
-    let angle_mode = match mode {
-        CalcMode::Standard | CalcMode::Scientific | CalcMode::Statistics
-        | CalcMode::Complex | CalcMode::Matrix => AngleMode::Rad,
-        CalcMode::Programmer => AngleMode::Rad, // En modo programador no aplica trigonometría
+    // Obtener angle_mode y last_answer del estado.
+    let (angle_mode, last_answer) = {
+        let s = state
+            .lock()
+            .map_err(|e| CalcError::new(
+                crate::models::errors::ErrorKind::InternalError,
+                format!("Error al acceder al estado: {}", e),
+            ))?;
+        (s.angle_mode, s.last_answer)
     };
 
-    let result = parser::evaluate(&expr, angle_mode)?;
+    // Evaluar la expresión pasando el last_answer actual para `ans`.
+    let result = parser::evaluate(&expr, angle_mode, last_answer)?;
+
+    let formatted = format_result(result);
+
+    // Generar ID único y timestamp para la entrada de historial.
+    let history_id = uuid::Uuid::new_v4().to_string();
+    let timestamp = chrono::Utc::now().to_rfc3339();
+
+    let entry = HistoryEntry {
+        id: history_id,
+        expression: expr.clone(),
+        result: formatted.clone(),
+        timestamp,
+        mode: mode.clone(),
+    };
+
+    // Actualizar el estado: last_answer, historial, y persistir.
+    {
+        let mut s = state
+            .lock()
+            .map_err(|e| CalcError::new(
+                crate::models::errors::ErrorKind::InternalError,
+                format!("Error al acceder al estado: {}", e),
+            ))?;
+
+        s.last_answer = result;
+        s.history.insert(0, entry);
+
+        // Limitar el historial a 100 entradas.
+        s.history.truncate(100);
+
+        // Persistir el estado a disco (ignorar error de persistencia, no es crítico).
+        let _ = persistence::state::save_state(&s, &app_handle);
+    }
 
     Ok(ExpressionResult {
-        result: format_result(result),
+        result: formatted,
         display: expr,
         format: FormatType::Decimal,
     })

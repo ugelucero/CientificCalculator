@@ -10,36 +10,24 @@ use crate::models::errors::{CalcError, ErrorKind};
 use crate::models::types::AngleMode;
 use crate::parser::ast::{AstNode, BinaryOperator, UnaryOperator};
 
-/// Último resultado evaluado (para la constante `ans`).
-/// En una fase futura esto será parte del AppState global.
-static mut LAST_ANSWER: f64 = 0.0;
-
-/// Establece el último resultado (llamado desde la capa de comandos).
-pub fn set_last_answer(value: f64) {
-    // Safety: single-threaded access in Tauri command context.
-    unsafe {
-        LAST_ANSWER = value;
-    }
-}
-
-/// Obtiene el último resultado.
-pub fn get_last_answer() -> f64 {
-    unsafe { LAST_ANSWER }
-}
-
 /// Evalúa una secuencia de nodos RPN y devuelve el resultado numérico.
 ///
 /// # Argumentos
 ///
 /// * `nodes` - Secuencia de `AstNode` en orden RPN (salida del shunting yard).
 /// * `angle_mode` - Modo angular para funciones trigonométricas.
+/// * `last_answer` - Último resultado evaluado, usado para la constante `ans`.
 ///
 /// # Errores
 ///
 /// * `DivisionByZero` - División o módulo por cero.
 /// * `DomainError` - Argumento fuera del dominio (ej: sqrt(-1), log(0)).
 /// * `ParseError` - Secuencia RPN inválida (pila desbalanceada).
-pub fn evaluate_ast(nodes: &[AstNode], angle_mode: AngleMode) -> Result<f64, CalcError> {
+pub fn evaluate_ast(
+    nodes: &[AstNode],
+    angle_mode: AngleMode,
+    last_answer: f64,
+) -> Result<f64, CalcError> {
     let mut stack: Vec<f64> = Vec::with_capacity(nodes.len());
 
     for node in nodes {
@@ -49,7 +37,7 @@ pub fn evaluate_ast(nodes: &[AstNode], angle_mode: AngleMode) -> Result<f64, Cal
             }
 
             AstNode::Constant(name) => {
-                let value = resolve_constant(name)?;
+                let value = resolve_constant(name, last_answer)?;
                 stack.push(value);
             }
 
@@ -88,14 +76,7 @@ pub fn evaluate_ast(nodes: &[AstNode], angle_mode: AngleMode) -> Result<f64, Cal
         ));
     }
 
-    let result = stack[0];
-
-    // Actualizar último resultado para `ans`.
-    unsafe {
-        LAST_ANSWER = result;
-    }
-
-    Ok(result)
+    Ok(stack[0])
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -111,11 +92,11 @@ fn pop_stack(stack: &mut Vec<f64>, context: &str) -> Result<f64, CalcError> {
 }
 
 /// Resuelve una constante por nombre.
-fn resolve_constant(name: &str) -> Result<f64, CalcError> {
+fn resolve_constant(name: &str, last_answer: f64) -> Result<f64, CalcError> {
     match name {
         "pi" => Ok(consts::PI),
         "e" => Ok(consts::E),
-        "ans" => Ok(get_last_answer()),
+        "ans" => Ok(last_answer),
         _ => Err(CalcError::new(
             ErrorKind::UndefinedVariable,
             format!("Constante desconocida: '{}'", name),
@@ -403,7 +384,7 @@ mod tests {
         use crate::parser::tokenizer::tokenize;
         let tokens = tokenize(expr)?;
         let nodes = shunting_yard(&tokens)?;
-        evaluate_ast(&nodes, angle_mode)
+        evaluate_ast(&nodes, angle_mode, 0.0)
     }
 
     // ─── Aritmética básica ──────────────────────────────────────────
@@ -714,6 +695,18 @@ mod tests {
         assert!((result - std::f64::consts::E).abs() < 1e-10);
     }
 
+    // ─── ans constant ────────────────────────────────────────────────
+
+    #[test]
+    fn test_ans_uses_passed_value() {
+        use crate::parser::ast::shunting_yard;
+        use crate::parser::tokenizer::tokenize;
+        let tokens = tokenize("ans+5").unwrap();
+        let nodes = shunting_yard(&tokens).unwrap();
+        let result = evaluate_ast(&nodes, AngleMode::Rad, 42.0).unwrap();
+        assert!((result - 47.0).abs() < 1e-10, "42 + 5 = 47, got {}", result);
+    }
+
     // ─── Factorial ───────────────────────────────────────────────────
 
     #[test]
@@ -776,7 +769,7 @@ mod tests {
             AstNode::Number(2.0),
             // Falta un operador → quedarán 2 valores en la pila
         ];
-        let result = evaluate_ast(&nodes, AngleMode::Rad);
+        let result = evaluate_ast(&nodes, AngleMode::Rad, 0.0);
         assert!(result.is_err());
     }
 }

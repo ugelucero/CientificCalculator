@@ -1,7 +1,10 @@
+use std::sync::Mutex;
+
 mod commands;
 mod models;
 mod parser;
 mod math;
+mod persistence;
 
 use commands::evaluate::evaluate_expression;
 use commands::convert::convert_units;
@@ -11,6 +14,7 @@ use commands::memory::{
     memory_add, memory_subtract,
     set_angle_mode, set_precision,
 };
+use persistence::state::load_state;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -29,8 +33,15 @@ pub fn run() {
             set_precision,
         ])
         .setup(|app| {
+            // Cargar estado persistido desde disco.
+            let app_handle = app.handle();
+            let app_state = load_state(app_handle);
+
+            // Registrar AppState como estado gestionado por Tauri.
+            app.manage(Mutex::new(app_state));
+
             if cfg!(debug_assertions) {
-                app.handle().plugin(
+                app_handle.plugin(
                     tauri_plugin_log::Builder::default()
                         .level(log::LevelFilter::Info)
                         .build(),
