@@ -1,4 +1,5 @@
 use std::sync::Mutex;
+use tauri::Manager;
 
 mod commands;
 mod models;

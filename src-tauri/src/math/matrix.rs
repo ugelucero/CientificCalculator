@@ -286,17 +286,17 @@ impl Matrix {
                 let mut cof = Self::new(3, 3);
 
                 // Cofactores (con signo incluido).
-                cof.data[0][0] = (a[1][1] * a[2][2] - a[1][2] * a[2][1]);
+                cof.data[0][0] = a[1][1] * a[2][2] - a[1][2] * a[2][1];
                 cof.data[0][1] = -(a[0][1] * a[2][2] - a[0][2] * a[2][1]);
-                cof.data[0][2] = (a[0][1] * a[1][2] - a[0][2] * a[1][1]);
+                cof.data[0][2] = a[0][1] * a[1][2] - a[0][2] * a[1][1];
 
                 cof.data[1][0] = -(a[1][0] * a[2][2] - a[1][2] * a[2][0]);
-                cof.data[1][1] = (a[0][0] * a[2][2] - a[0][2] * a[2][0]);
+                cof.data[1][1] = a[0][0] * a[2][2] - a[0][2] * a[2][0];
                 cof.data[1][2] = -(a[0][0] * a[1][2] - a[0][2] * a[1][0]);
 
-                cof.data[2][0] = (a[1][0] * a[2][1] - a[1][1] * a[2][0]);
+                cof.data[2][0] = a[1][0] * a[2][1] - a[1][1] * a[2][0];
                 cof.data[2][1] = -(a[0][0] * a[2][1] - a[0][1] * a[2][0]);
-                cof.data[2][2] = (a[0][0] * a[1][1] - a[0][1] * a[1][0]);
+                cof.data[2][2] = a[0][0] * a[1][1] - a[0][1] * a[1][0];
 
                 // Transponer para obtener la adjunta y dividir por determinante.
                 let mut inv = Self::new(3, 3);
