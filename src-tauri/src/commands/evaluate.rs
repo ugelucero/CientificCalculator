@@ -32,9 +32,22 @@ pub fn evaluate_expression(
     };
 
     // Evaluar la expresión pasando el last_answer actual para `ans`.
-    let result = parser::evaluate(&expr, angle_mode, last_answer)?;
-
-    let formatted = format_result_for_mode(result, &mode);
+    // En modo Complejo se usa el evaluador de complejos.
+    let (formatted, result_value) = match &mode {
+        CalcMode::Complex => {
+            let complex_result = parser::evaluate_complex(&expr, angle_mode, last_answer)?;
+            let ans_value = if complex_result.is_real() {
+                complex_result.real
+            } else {
+                complex_result.abs()
+            };
+            (complex_result.to_string(), ans_value)
+        }
+        _ => {
+            let result = parser::evaluate(&expr, angle_mode, last_answer)?;
+            (format_result_for_mode(result, &mode), result)
+        }
+    };
 
     // Generar ID único y timestamp para la entrada de historial.
     let history_id = uuid::Uuid::new_v4().to_string();
@@ -57,7 +70,7 @@ pub fn evaluate_expression(
                 format!("Error al acceder al estado: {}", e),
             ))?;
 
-        s.last_answer = result;
+        s.last_answer = result_value;
         s.history.insert(0, entry);
 
         // Limitar el historial a 100 entradas.

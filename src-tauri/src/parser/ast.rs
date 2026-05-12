@@ -134,7 +134,8 @@ pub fn shunting_yard(tokens: &[Token]) -> Result<Vec<AstNode>, CalcError> {
     let mut paren_balance: i32 = 0;
 
     /// Determina si un token `Minus` en la posición dada debe interpretarse
-    /// como negación unaria (en vez de resta binaria).
+    /// como negación unaria (en vez de resta binaria). También se usa para
+    /// detectar contexto donde NO debe insertarse multiplicación implícita.
     fn is_unary_context(idx: usize, tokens: &[Token]) -> bool {
         if idx == 0 {
             return true;
@@ -145,7 +146,8 @@ pub fn shunting_yard(tokens: &[Token]) -> Result<Vec<AstNode>, CalcError> {
             | Token::Factorial
             | Token::Pi
             | Token::E
-            | Token::Ans => false,
+            | Token::Ans
+            | Token::Imaginary => false,
             _ => true,
         }
     }
@@ -218,6 +220,33 @@ pub fn shunting_yard(tokens: &[Token]) -> Result<Vec<AstNode>, CalcError> {
             Token::Ans => {
                 output.push(AstNode::Constant("ans".to_string()));
             }
+            Token::Imaginary => {
+                // Implicit multiplication: si viene después de Number, RParen,
+                // Constant, Factorial, o Imaginary, insertar '*'.
+                if idx > 0 {
+                    match &tokens[idx - 1] {
+                        Token::Number(_)
+                        | Token::RParen
+                        | Token::Factorial
+                        | Token::Pi
+                        | Token::E
+                        | Token::Ans
+                        | Token::Imaginary => {
+                            while let Some(top) = op_stack.last() {
+                                if should_pop_stack(top, &BinaryOperator::Mul) {
+                                    let item = op_stack.pop().unwrap();
+                                    emit(item, &mut output);
+                                } else {
+                                    break;
+                                }
+                            }
+                            op_stack.push(StackItem::BinOp(BinaryOperator::Mul));
+                        }
+                        _ => {}
+                    }
+                }
+                output.push(AstNode::Constant("i".to_string()));
+            }
 
             // ── Funciones ──────────────────────────────────────────────
             Token::Sin => op_stack.push(StackItem::Function { name: "sin".into(), arg_count: 1 }),
@@ -237,6 +266,10 @@ pub fn shunting_yard(tokens: &[Token]) -> Result<Vec<AstNode>, CalcError> {
             Token::Cbrt => op_stack.push(StackItem::Function { name: "cbrt".into(), arg_count: 1 }),
             Token::Abs => op_stack.push(StackItem::Function { name: "abs".into(), arg_count: 1 }),
             Token::Exp => op_stack.push(StackItem::Function { name: "exp".into(), arg_count: 1 }),
+            Token::Real => op_stack.push(StackItem::Function { name: "real".into(), arg_count: 1 }),
+            Token::Imag => op_stack.push(StackItem::Function { name: "imag".into(), arg_count: 1 }),
+            Token::Conj => op_stack.push(StackItem::Function { name: "conj".into(), arg_count: 1 }),
+            Token::Arg => op_stack.push(StackItem::Function { name: "arg".into(), arg_count: 1 }),
 
             // ── Coma (separador de argumentos) ──────────────────────────
             Token::Comma => {

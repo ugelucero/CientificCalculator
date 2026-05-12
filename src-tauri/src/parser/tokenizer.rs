@@ -45,6 +45,13 @@ pub enum Token {
     Shl,
     Shr,
     Xor,
+    /// Unidad imaginaria `i` o `j`.
+    Imaginary,
+    /// Funciones complejas.
+    Real,
+    Imag,
+    Conj,
+    Arg,
 }
 
 /// Convierte una cadena de expresión en un vector de tokens.
@@ -408,6 +415,11 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, CalcError> {
                 "e" => tokens.push(Token::E),
                 "ans" => tokens.push(Token::Ans),
                 "xor" => tokens.push(Token::Xor),
+                "i" | "j" => tokens.push(Token::Imaginary),
+                "real" => tokens.push(Token::Real),
+                "imag" => tokens.push(Token::Imag),
+                "conj" => tokens.push(Token::Conj),
+                "arg" => tokens.push(Token::Arg),
                 _ => {
                     return Err(CalcError::new(
                         ErrorKind::ParseError,
@@ -766,6 +778,51 @@ mod tests {
                 Token::Number(5.0),
                 Token::Xor,
                 Token::Number(3.0),
+            ]
+        );
+    }
+
+    // ─── Unidad imaginaria y funciones complejas ────────────────────────
+
+    #[test]
+    fn test_imaginary_unit_i() {
+        let tokens = tokenize("i").unwrap();
+        assert_eq!(tokens, vec![Token::Imaginary]);
+    }
+
+    #[test]
+    fn test_imaginary_unit_j() {
+        let tokens = tokenize("j").unwrap();
+        assert_eq!(tokens, vec![Token::Imaginary]);
+    }
+
+    #[test]
+    fn test_real_function() {
+        let tokens = tokenize("real(5)").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Real,
+                Token::LParen,
+                Token::Number(5.0),
+                Token::RParen,
+            ]
+        );
+    }
+
+    #[test]
+    fn test_conj_function() {
+        let tokens = tokenize("conj(3+4i)").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Conj,
+                Token::LParen,
+                Token::Number(3.0),
+                Token::Plus,
+                Token::Number(4.0),
+                Token::Imaginary,
+                Token::RParen,
             ]
         );
     }

@@ -4,37 +4,61 @@
 //! 1. **Tokenización** (`tokenizer`): string → `Vec<Token>`
 //! 2. **Shunting Yard** (`ast`): tokens infijos → RPN como `Vec<AstNode>`
 //! 3. **Evaluación** (`evaluator`): nodos RPN → `f64`
+//! 4. **Evaluación compleja** (`complex_eval`): nodos RPN → `Complex`
 //!
 //! La función pública principal es [`evaluate`].
 
 pub mod tokenizer;
 pub mod ast;
 pub mod evaluator;
+pub mod complex_eval;
 
+use crate::math::complex::Complex;
 use crate::models::errors::CalcError;
-use crate::models::types::AngleMode;
+use crate::models::types::{AngleMode, CalcMode};
 
-/// Evalúa una expresión matemática en notación infija.
+/// Evalúa una expresión matemática en notación infija (modo real).
 ///
 /// Encadena el pipeline completo: tokenize → shunting yard → evaluate RPN.
-///
-/// # Argumentos
-///
-/// * `input` - Expresión matemática en notación infija.
-/// * `angle_mode` - Modo angular para funciones trigonométricas.
-/// * `last_answer` - Último resultado evaluado (para la constante `ans`).
-///
-/// # Ejemplos
-///
-/// ```
-/// // Desde dentro del crate (no doc-test funcional, solo ilustrativo)
-/// // let result = evaluate("2+3*4", AngleMode::Rad, 0.0)?;
-/// // assert_eq!(result, 14.0);
-/// ```
 pub fn evaluate(input: &str, angle_mode: AngleMode, last_answer: f64) -> Result<f64, CalcError> {
     let tokens = tokenizer::tokenize(input)?;
     let rpn = ast::shunting_yard(&tokens)?;
     evaluator::evaluate_ast(&rpn, angle_mode, last_answer)
+}
+
+/// Evalúa una expresión matemática en notación infija (modo complejo).
+///
+/// Retorna un `Complex`. Si el resultado no tiene parte imaginaria,
+/// se comporta como real.
+pub fn evaluate_complex(
+    input: &str,
+    angle_mode: AngleMode,
+    last_answer: f64,
+) -> Result<Complex, CalcError> {
+    let tokens = tokenizer::tokenize(input)?;
+    let rpn = ast::shunting_yard(&tokens)?;
+    complex_eval::evaluate_ast_complex(&rpn, angle_mode, last_answer)
+}
+
+/// Evalúa una expresión según el modo de la calculadora.
+///
+/// Devuelve el resultado formateado como string según el modo.
+pub fn evaluate_with_mode(
+    input: &str,
+    angle_mode: AngleMode,
+    last_answer: f64,
+    calc_mode: &CalcMode,
+) -> Result<String, CalcError> {
+    match calc_mode {
+        CalcMode::Complex => {
+            let result = evaluate_complex(input, angle_mode, last_answer)?;
+            Ok(result.to_string())
+        }
+        _ => {
+            let result = evaluate(input, angle_mode, last_answer)?;
+            Ok(result.to_string())
+        }
+    }
 }
 
 #[cfg(test)]
@@ -55,7 +79,6 @@ mod tests {
 
     #[test]
     fn test_evaluate_power_associativity() {
-        // 2^3^2 = 512
         let result = evaluate("2^3^2", AngleMode::Rad, 0.0).unwrap();
         assert!((result - 512.0).abs() < 1e-10);
     }

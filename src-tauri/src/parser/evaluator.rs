@@ -97,6 +97,10 @@ fn resolve_constant(name: &str, last_answer: f64) -> Result<f64, CalcError> {
         "pi" => Ok(consts::PI),
         "e" => Ok(consts::E),
         "ans" => Ok(last_answer),
+        "i" => Err(CalcError::new(
+            ErrorKind::DomainError,
+            "La unidad imaginaria 'i' solo está disponible en modo Complejo".to_string(),
+        )),
         _ => Err(CalcError::new(
             ErrorKind::UndefinedVariable,
             format!("Constante desconocida: '{}'", name),
@@ -242,6 +246,16 @@ fn eval_function(name: &str, arg: f64, angle_mode: AngleMode) -> Result<f64, Cal
         "cbrt" => Ok(arg.cbrt()),
         "abs" => Ok(arg.abs()),
         "exp" => Ok(arg.exp()),
+        "real" => Ok(arg),
+        "imag" => Ok(0.0),
+        "conj" => Ok(arg),
+        "arg" => {
+            if arg >= 0.0 {
+                Ok(0.0)
+            } else {
+                Ok(std::f64::consts::PI)
+            }
+        }
         _ => Err(CalcError::new(
             ErrorKind::ParseError,
             format!("Función desconocida: '{}'", name),
