@@ -90,9 +90,10 @@ function convertAngle(value, fromMode, direction) {
  *
  * @param {string} expression - Expresión matemática en notación infija
  * @param {string} [angleMode='Rad'] - 'Deg' | 'Rad' | 'Grad'
+ * @param {string} [mode='Standard'] - 'Standard' | 'Scientific' | 'Programmer' | 'Complex'
  * @returns {{ result: string, display: string, format: string }}
  */
-function evaluateLocal(expression, angleMode = 'Rad') {
+function evaluateLocal(expression, angleMode = 'Rad', mode = 'Standard') {
   const trimmed = expression.trim();
 
   if (!trimmed) {
@@ -116,6 +117,23 @@ function evaluateLocal(expression, angleMode = 'Rad') {
   };
 
   let expr = trimmed;
+
+  // ── En modo Complejo, pre-procesar sqrt(-x) e 'i' ──
+  let isComplexResult = false;
+  if (mode === 'Complex') {
+    // sqrt(-número) → devuelve string imaginario
+    expr = expr.replace(/sqrt\(\s*(-\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*\)/g, (match, num) => {
+      isComplexResult = true;
+      const abs = Math.sqrt(-parseFloat(num));
+      if (abs === 1) return '"i"';
+      return `"${abs}i"`;
+    });
+    // 'i' como unidad imaginaria (cuidado: no capturar 'i' en 'sin', 'cos', etc.)
+    expr = expr.replace(/\bi\b/g, (m) => {
+      isComplexResult = true;
+      return '"i"';
+    });
+  }
 
   // ── Reemplazar funciones (orden: más largas primero) ──
   // Logaritmos (log10/log2 antes que log genérico)
@@ -176,8 +194,21 @@ function evaluateLocal(expression, angleMode = 'Rad') {
     throw new Error(`Error al evaluar: ${e.message}`, { cause: e });
   }
 
+  // ── En modo complejo, si el resultado es string (imaginario) ──
+  if (typeof result === 'string') {
+    return {
+      result: result,
+      display: expression,
+      format: 'Complex',
+    };
+  }
+
   if (typeof result !== 'number' || !Number.isFinite(result)) {
     if (Number.isNaN(result)) {
+      // Si es modo complejo y hay NaN, podría ser una operación compleja no soportada
+      if (mode === 'Complex') {
+        throw new Error('Operación compleja no soportada en el evaluador local. Usa Tauri para cálculo completo.');
+      }
       throw new Error('Resultado no es un número (NaN)');
     }
     return {
@@ -410,7 +441,7 @@ export const api = {
       return invoke('evaluate_expression', { expr, mode, angleMode: angleMode || 'Rad' });
     }
     // Fallback: evaluación local para desarrollo en navegador
-    return evaluateLocal(expr, angleMode);
+    return evaluateLocal(expr, angleMode, mode);
   },
 
   /**

@@ -142,6 +142,47 @@
     </div>
   {/if}
 
+  {#if mode === 'Complex'}
+    <!-- Botones para modo Complejo: i, conj, arg, real, imag -->
+    <div class="flex gap-1.5">
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-bold cursor-pointer select-none transition-all duration-150 bg-purple-500 dark:bg-purple-600 hover:bg-purple-400 dark:hover:bg-purple-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress('i')}
+        title="Unidad imaginaria i"
+      >
+        i
+      </button>
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress('conj(')}
+        title="Conjugado"
+      >
+        conj
+      </button>
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress('arg(')}
+        title="Argumento (fase)"
+      >
+        arg
+      </button>
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress('real(')}
+        title="Parte real"
+      >
+        real
+      </button>
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-sm font-bold cursor-pointer select-none transition-all duration-150 bg-violet-500 dark:bg-violet-600 hover:bg-violet-400 dark:hover:bg-violet-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress('imag(')}
+        title="Parte imaginaria"
+      >
+        imag
+      </button>
+    </div>
+  {/if}
+
   <!-- Teclado numérico principal -->
   {#each buttons as row, i (i)}
     <div class="flex gap-1.5">
