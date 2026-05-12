@@ -19,48 +19,27 @@
   /** Matriz B: segunda matriz para operaciones binarias */
   let matrixB = $state([]);
 
-  // Inicializar y redimensionar cuando cambian rows/cols
-  $effect(() => {
-    resizeMatrix(rows, cols);
-  });
-
-  /** Operación binaria activa (muestra matriz B) */
-  let showB = $state(false);
-
-  /** Resultado formateado devuelto por el backend o generado localmente */
-  let resultDisplay = $state('');
-
-  /** Mensaje de error */
-  let errorMessage = $state('');
-
-  /** Indica si hubo un resultado para mostrar */
-  let hasResult = $state(false);
-
   /** Crea una matriz vacía (ceros) de r × c */
   function createEmptyMatrix(r, c) {
     return Array.from({ length: r }, () => Array(c).fill(0));
   }
 
-  /** Reajusta las matrices cuando cambia el tamaño */
-  function resizeMatrix(r, c) {
-    // Redimensionar matrixA
-    const newA = createEmptyMatrix(r, c);
-    for (let i = 0; i < Math.min(r, matrixA.length); i++) {
-      for (let j = 0; j < Math.min(c, matrixA[i]?.length || 0); j++) {
-        newA[i][j] = matrixA[i][j];
-      }
+  /** Inicializar al montar (solo la primera vez) */
+  let initialized = false;
+  $effect(() => {
+    if (!initialized && rows > 0 && cols > 0) {
+      initialized = true;
+      matrixA = createEmptyMatrix(rows, cols);
+      matrixB = createEmptyMatrix(rows, cols);
     }
-    matrixA = newA;
+  });
 
-    // Redimensionar matrixB
-    const newB = createEmptyMatrix(r, c);
-    for (let i = 0; i < Math.min(r, matrixB.length); i++) {
-      for (let j = 0; j < Math.min(c, matrixB[i]?.length || 0); j++) {
-        newB[i][j] = matrixB[i][j];
-      }
-    }
-    matrixB = newB;
-
+  /** Redimensiona cuando cambian rows/cols, sin bucle infinito */
+  function onSizeChange() {
+    const r = rows;
+    const c = cols;
+    matrixA = createEmptyMatrix(r, c);
+    matrixB = createEmptyMatrix(r, c);
     resultDisplay = '';
     errorMessage = '';
     hasResult = false;
@@ -220,6 +199,7 @@
         min="1"
         max="5"
         bind:value={rows}
+        onchange={onSizeChange}
         class="w-14 px-1.5 py-0.5 rounded border border-gray-400 dark:border-gray-600
                bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200
                text-center text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -233,6 +213,7 @@
         min="1"
         max="5"
         bind:value={cols}
+        onchange={onSizeChange}
         class="w-14 px-1.5 py-0.5 rounded border border-gray-400 dark:border-gray-600
                bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200
                text-center text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"

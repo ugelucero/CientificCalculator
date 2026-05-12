@@ -28,10 +28,10 @@
 </script>
 
 <div class="flex justify-between items-center gap-1.5">
-    <div class="flex gap-0.5">
+    <div class="flex gap-0.5 flex-wrap">
       {#each modes as mode, i (i)}
         <button
-          class="px-2 py-1 text-[11px] font-semibold border border-gray-600 dark:border-gray-600 rounded transition-all duration-150"
+          class="px-1.5 py-1 text-[10px] font-semibold border border-gray-600 dark:border-gray-600 rounded transition-all duration-150"
           class:bg-blue-600!={currentMode === mode.value}
           class:text-white!={currentMode === mode.value}
           class:bg-transparent={currentMode !== mode.value}
@@ -45,10 +45,10 @@
       {/each}
     </div>
 
-    <div class="flex gap-0.5">
+    <div class="flex gap-0.5 flex-shrink-0">
       {#each angleModes as am, i (i)}
         <button
-          class="px-2 py-1 text-[11px] font-semibold border border-gray-600 dark:border-gray-600 rounded transition-all duration-150"
+          class="px-1.5 py-1 text-[10px] font-semibold border border-gray-600 dark:border-gray-600 rounded transition-all duration-150"
           class:bg-purple-700!={currentAngleMode === am.value}
           class:text-white!={currentAngleMode === am.value}
           class:bg-transparent={currentAngleMode !== am.value}

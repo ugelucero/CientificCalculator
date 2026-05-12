@@ -131,8 +131,12 @@
     calculator.setPrecision(precision);
   }
 
-  /** Selección desde el historial: insertar expresión */
+  /** Selección desde el historial: restaurar expresión y modo */
   function handleHistorySelect(entry) {
+    // Restaurar el modo en que se creó la entrada
+    if (entry.mode) {
+      calculator.setMode(entry.mode);
+    }
     calculator.clear();
     calculator.append(entry.expression);
   }

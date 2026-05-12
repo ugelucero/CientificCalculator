@@ -290,6 +290,7 @@ function createCalculatorStore() {
       const historyEntry = {
         expression: expr,
         result: result.result,
+        mode: mode,
       };
 
       // Marcar para comportamiento en cadena (próximo append)
