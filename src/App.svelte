@@ -1,10 +1,9 @@
 <script>
   /**
    * App.svelte - Componente raíz de la calculadora científica.
-   * Organiza: ModeSelector → Display → ScientificKeys → Keypad → History
+   * Organiza: ThemeToggle → ModeSelector → Display → ScientificKeys → Keypad → History
    * Maneja eventos de teclado globales.
    */
-  import { onMount } from 'svelte';
   import { calculator } from './lib/stores/calculator.js';
   import Display from './lib/components/Display.svelte';
   import Keypad from './lib/components/Keypad.svelte';
@@ -14,6 +13,16 @@
 
   /** Estado reactivo derivado de la store */
   const state = $derived($calculator);
+
+  /** Sincroniza la clase `dark` en <html> con el tema actual */
+  $effect(() => {
+    const root = document.documentElement;
+    if (state.theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  });
 
   /**
    * Mapa de teclas del teclado a acciones del store.
@@ -73,8 +82,6 @@
     }
   }
 
-  /** El listener de teclado se registra automáticamente via <svelte:window onkeydown> */
-
   // ── Handlers para componentes ────────────────────────────
 
   /** Delegado: Keypad y ScientificKeys llaman a este handler */
@@ -107,9 +114,13 @@
     calculator.setAngleMode(angleMode);
   }
 
+  /** Cambio de precisión decimal */
+  function handlePrecisionChange(precision) {
+    calculator.setPrecision(precision);
+  }
+
   /** Selección desde el historial: insertar expresión */
   function handleHistorySelect(entry) {
-    // Reemplazar la expresión actual con la del historial
     calculator.clear();
     calculator.append(entry.expression);
   }
@@ -118,18 +129,36 @@
   function handleClearHistory() {
     calculator.setHistory([]);
   }
+
+  /** Toggle de tema claro/oscuro */
+  function toggleTheme() {
+    calculator.toggleTheme();
+  }
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<div class="calculator-app">
-  <!-- Selector de modo en la cabecera -->
-  <ModeSelector
-    currentMode={state.mode}
-    currentAngleMode={state.angleMode}
-    onModeChange={handleModeChange}
-    onAngleModeChange={handleAngleModeChange}
-  />
+<div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col max-w-[420px] mx-auto w-full">
+  <!-- Cabecera: selector de modo + toggle de tema -->
+  <div class="flex items-start px-2 pt-2">
+    <div class="flex-1 min-w-0">
+      <ModeSelector
+        currentMode={state.mode}
+        currentAngleMode={state.angleMode}
+        precision={state.precision}
+        onModeChange={handleModeChange}
+        onAngleModeChange={handleAngleModeChange}
+        onPrecisionChange={handlePrecisionChange}
+      />
+    </div>
+    <button
+      onclick={toggleTheme}
+      class="flex-shrink-0 p-2 text-xl leading-none rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      aria-label="Toggle theme"
+    >
+      {state.theme === 'dark' ? '☀️' : '🌙'}
+    </button>
+  </div>
 
   <!-- Display: expresión + resultado + indicadores -->
   <Display
@@ -139,6 +168,7 @@
     angleMode={state.angleMode}
     memory={state.memory}
     mode={state.mode}
+    precision={state.precision}
   />
 
   <!-- Panel de teclas científicas expandible -->
@@ -158,16 +188,3 @@
     onClear={handleClearHistory}
   />
 </div>
-
-<style>
-  .calculator-app {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
-    min-height: 100vh;
-    background: #111827;
-    display: flex;
-    flex-direction: column;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-</style>

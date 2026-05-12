@@ -42,14 +42,26 @@
       { label: '=',  value: 'equals', variant: 'equals' },
     ],
   ];
+
+  /** Clases Tailwind por variante de botón */
+  const variantClasses = {
+    digit:
+      'bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 active:scale-95 active:opacity-85 text-gray-800 dark:text-gray-100',
+    operator:
+      'bg-blue-500 dark:bg-blue-600 hover:bg-blue-400 dark:hover:bg-blue-500 active:scale-95 active:opacity-85 text-white',
+    action:
+      'bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 active:scale-95 active:opacity-85 text-gray-800 dark:text-gray-300',
+    equals:
+      'bg-green-500 dark:bg-green-600 hover:bg-green-400 dark:hover:bg-green-500 active:scale-95 active:opacity-85 text-white font-bold',
+  };
 </script>
 
-<div class="keypad">
+<div class="flex flex-col gap-1.5 p-2">
   {#each buttons as row, i (i)}
-    <div class="keypad-row">
+    <div class="flex gap-1.5">
       {#each row as btn, j (j)}
         <button
-          class="key-btn {btn.variant}"
+          class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 {variantClasses[btn.variant]}"
           onclick={() => onKeyPress(btn.value)}
         >
           {btn.label}
@@ -58,74 +70,3 @@
     </div>
   {/each}
 </div>
-
-<style>
-  .keypad {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px;
-  }
-
-  .keypad-row {
-    display: flex;
-    gap: 6px;
-  }
-
-  .key-btn {
-    flex: 1;
-    aspect-ratio: 1.2;
-    border: none;
-    border-radius: 10px;
-    font-size: 20px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-  }
-
-  .key-btn:active {
-    transform: scale(0.95);
-    opacity: 0.85;
-  }
-
-  .key-btn.digit {
-    background: #374151;
-    color: #f3f4f6;
-  }
-
-  .key-btn.digit:hover {
-    background: #4b5563;
-  }
-
-  .key-btn.operator {
-    background: #2563eb;
-    color: #ffffff;
-  }
-
-  .key-btn.operator:hover {
-    background: #3b82f6;
-  }
-
-  .key-btn.action {
-    background: #4b5563;
-    color: #d1d5db;
-  }
-
-  .key-btn.action:hover {
-    background: #6b7280;
-  }
-
-  .key-btn.equals {
-    background: #059669;
-    color: #ffffff;
-    font-weight: 700;
-  }
-
-  .key-btn.equals:hover {
-    background: #10b981;
-  }
-</style>

@@ -117,6 +117,12 @@ function evaluateLocal(expression) {
   // \be\b no hace match en "1e5" porque no hay word boundary entre dígito y letra.
   expr = expr.replace(/\be\b/g,   'Math.E');
 
+  // phi (φ) constante áurea
+  expr = expr.replace(/\bphi\b/g, '(1.618033988749895)');
+
+  // c = velocidad de la luz
+  expr = expr.replace(/\bc\b/g,   '(299792458)');
+
   // ── Operadores ──
   // Potencia: ^ → **
   expr = expr.replace(/\^/g, '**');

@@ -1,6 +1,6 @@
 <script>
   /**
-   * ScientificKeys.svelte - Panel de funciones científicas expandible.
+   * ScientificKeys.svelte - Panel de funciones científicas y constantes expandible.
    */
   const { expanded = false, onKeyPress = () => {}, onToggleExpand = () => {} } = $props();
 
@@ -30,20 +30,32 @@
       { label: '1/x',  value: '^(-1)' },
     ],
   ];
+
+  /** Constantes predefinidas */
+  const constants = [
+    { label: 'π', value: 'pi',   tooltip: '3.14159...' },
+    { label: 'e', value: 'e',    tooltip: '2.71828...' },
+    { label: 'φ', value: 'phi',  tooltip: '1.61803...' },
+    { label: 'c', value: 'c',    tooltip: '299 792 458' },
+  ];
 </script>
 
-<div class="scientific-panel">
-  <button class="toggle-btn" onclick={onToggleExpand}>
+<div class="px-2">
+  <button
+    class="w-full py-2 px-3 bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-400 dark:border-gray-700 rounded-lg text-sm cursor-pointer transition-colors duration-150 hover:bg-gray-400 dark:hover:bg-gray-700"
+    onclick={onToggleExpand}
+  >
     {expanded ? '▲' : '▼'} Scientific
   </button>
 
   {#if expanded}
-    <div class="scientific-keys">
+    <!-- Botones científicos -->
+    <div class="mt-1.5 flex flex-col gap-1">
       {#each scientificButtons as row, i (i)}
-        <div class="sci-row">
+        <div class="flex gap-1">
           {#each row as btn, j (j)}
             <button
-              class="sci-btn"
+              class="flex-1 aspect-[1.6] border-none rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium cursor-pointer transition-all duration-150 hover:bg-gray-400 dark:hover:bg-gray-600 active:scale-95"
               onclick={() => onKeyPress(btn.value)}
             >
               {btn.label}
@@ -52,60 +64,21 @@
         </div>
       {/each}
     </div>
+
+    <!-- Sección de constantes -->
+    <div class="mt-2 border border-gray-400 dark:border-gray-700 rounded-lg p-2">
+      <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Constantes</div>
+      <div class="flex gap-1">
+        {#each constants as c, i (i)}
+          <button
+            class="flex-1 aspect-[1.6] border-none rounded-lg bg-indigo-200 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-sm font-medium cursor-pointer transition-all duration-150 hover:bg-indigo-300 dark:hover:bg-indigo-800 active:scale-95"
+            title={c.tooltip}
+            onclick={() => onKeyPress(c.value)}
+          >
+            {c.label}
+          </button>
+        {/each}
+      </div>
+    </div>
   {/if}
 </div>
-
-<style>
-  .scientific-panel {
-    padding: 4px 8px;
-  }
-
-  .toggle-btn {
-    width: 100%;
-    padding: 8px 12px;
-    background: #1f2937;
-    color: #9ca3af;
-    border: 1px solid #374151;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .toggle-btn:hover {
-    background: #374151;
-  }
-
-  .scientific-keys {
-    margin-top: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .sci-row {
-    display: flex;
-    gap: 4px;
-  }
-
-  .sci-btn {
-    flex: 1;
-    aspect-ratio: 1.6;
-    border: none;
-    border-radius: 8px;
-    background: #374151;
-    color: #d1d5db;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .sci-btn:hover {
-    background: #4b5563;
-  }
-
-  .sci-btn:active {
-    transform: scale(0.95);
-  }
-</style>

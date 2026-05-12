@@ -1,14 +1,16 @@
 <script>
   /**
-   * ModeSelector.svelte - Selector de modo de calculadora y modo angular.
+   * ModeSelector.svelte - Selector de modo de calculadora, modo angular y precisión.
    * Permite elegir entre Standard, Scientific, Programmer, etc.
-   * También alterna entre Deg, Rad, Grad.
+   * También alterna entre Deg, Rad, Grad y ajusta precisión decimal.
    */
   const {
     currentMode = 'Standard',
     currentAngleMode = 'Deg',
+    precision = 10,
     onModeChange = () => {},
     onAngleModeChange = () => {},
+    onPrecisionChange = () => {},
   } = $props();
 
   const modes = [
@@ -24,75 +26,55 @@
   ];
 </script>
 
-<div class="mode-selector">
-  <div class="mode-group">
-    {#each modes as mode, i (i)}
-      <button
-        class="mode-btn"
-        class:active={currentMode === mode.value}
-        onclick={() => onModeChange(mode.value)}
-      >
-        {mode.label}
-      </button>
-    {/each}
+<div class="flex flex-col gap-1">
+  <!-- Fila superior: modo y ángulo -->
+  <div class="flex justify-between items-center gap-1.5">
+    <div class="flex gap-0.5">
+      {#each modes as mode, i (i)}
+        <button
+          class="px-2 py-1 text-[11px] font-semibold border border-gray-600 dark:border-gray-600 rounded transition-all duration-150"
+          class:bg-blue-600!={currentMode === mode.value}
+          class:text-white!={currentMode === mode.value}
+          class:bg-transparent={currentMode !== mode.value}
+          class:text-gray-400={currentMode !== mode.value}
+          class:hover:bg-gray-700={currentMode !== mode.value}
+          class:hover:text-gray-300={currentMode !== mode.value}
+          onclick={() => onModeChange(mode.value)}
+        >
+          {mode.label}
+        </button>
+      {/each}
+    </div>
+
+    <div class="flex gap-0.5">
+      {#each angleModes as am, i (i)}
+        <button
+          class="px-2 py-1 text-[11px] font-semibold border border-gray-600 dark:border-gray-600 rounded transition-all duration-150"
+          class:bg-purple-700!={currentAngleMode === am.value}
+          class:text-white!={currentAngleMode === am.value}
+          class:bg-transparent={currentAngleMode !== am.value}
+          class:text-gray-400={currentAngleMode !== am.value}
+          class:hover:bg-gray-700={currentAngleMode !== am.value}
+          class:hover:text-gray-300={currentAngleMode !== am.value}
+          onclick={() => onAngleModeChange(am.value)}
+        >
+          {am.label}
+        </button>
+      {/each}
+    </div>
   </div>
 
-  <div class="angle-group">
-    {#each angleModes as am, i (i)}
-      <button
-        class="angle-btn"
-        class:active={currentAngleMode === am.value}
-        onclick={() => onAngleModeChange(am.value)}
-      >
-        {am.label}
-      </button>
-    {/each}
+  <!-- Fila inferior: control de precisión -->
+  <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+    <span>Precision:</span>
+    <select
+      value={precision}
+      onchange={(e) => onPrecisionChange(Number(e.target.value))}
+      class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-400 dark:border-gray-600 rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+    >
+      {#each Array.from({ length: 16 }, (_, i) => i) as val}
+        <option value={val}>{val}</option>
+      {/each}
+    </select>
   </div>
 </div>
-
-<style>
-  .mode-selector {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
-  }
-
-  .mode-group,
-  .angle-group {
-    display: flex;
-    gap: 3px;
-  }
-
-  .mode-btn,
-  .angle-btn {
-    padding: 4px 8px;
-    border: 1px solid #374151;
-    border-radius: 5px;
-    background: #111827;
-    color: #9ca3af;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .mode-btn:hover,
-  .angle-btn:hover {
-    background: #1f2937;
-    color: #d1d5db;
-  }
-
-  .mode-btn.active {
-    background: #2563eb;
-    color: #ffffff;
-    border-color: #2563eb;
-  }
-
-  .angle-btn.active {
-    background: #7c3aed;
-    color: #ffffff;
-    border-color: #7c3aed;
-  }
-</style>

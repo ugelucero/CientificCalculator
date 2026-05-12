@@ -102,17 +102,26 @@ function removeLastToken(expr) {
 // ─── Store ─────────────────────────────────────────────────────────────────
 
 /** Estado inicial */
-const initialState = {
-  expression: '',
-  result: '',
-  error: null,
-  mode: 'Standard',
-  history: [],
-  memory: null,
-  angleMode: 'Deg',
-  precision: 10,
-  scientificExpanded: false,
-};
+function getInitialState() {
+  let savedTheme = 'dark';
+  try {
+    savedTheme = localStorage.getItem('calculator-theme') || 'dark';
+  } catch {}
+  return {
+    expression: '',
+    result: '',
+    error: null,
+    mode: 'Standard',
+    history: [],
+    memory: null,
+    angleMode: 'Deg',
+    precision: 10,
+    scientificExpanded: false,
+    theme: savedTheme,
+  };
+}
+
+const initialState = getInitialState();
 
 function createCalculatorStore() {
   const { subscribe, set, update } = writable({ ...initialState });
@@ -365,6 +374,33 @@ function createCalculatorStore() {
     set({ ...initialState });
   }
 
+  /** Cambia el tema entre 'light' y 'dark'. */
+  function toggleTheme() {
+    update((state) => {
+      const newTheme = state.theme === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('calculator-theme', newTheme);
+      } catch {}
+      return { ...state, theme: newTheme };
+    });
+  }
+
+  /** Establece el tema explícitamente. */
+  function setTheme(theme) {
+    update((state) => {
+      try {
+        localStorage.setItem('calculator-theme', theme);
+      } catch {}
+      return { ...state, theme };
+    });
+  }
+
+  /** Cambia la precisión decimal. */
+  function setPrecision(precision) {
+    update((state) => ({ ...state, precision }));
+    api.setPrecision(precision).catch(() => {});
+  }
+
   return {
     subscribe,
     append,
@@ -381,6 +417,9 @@ function createCalculatorStore() {
     setResult,
     setError,
     reset,
+    toggleTheme,
+    setTheme,
+    setPrecision,
   };
 }
 
