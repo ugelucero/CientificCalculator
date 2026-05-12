@@ -112,6 +112,36 @@
     </div>
   {/if}
 
+  {#if mode === 'Matrix'}
+    <!-- Botones para modo Matriz: [, ], ,, ; -->
+    <div class="flex gap-1.5">
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress('[')}
+      >
+        [
+      </button>
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress(']')}
+      >
+        ]
+      </button>
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress(',')}
+      >
+        ,
+      </button>
+      <button
+        class="flex-1 aspect-[1.2] border-none rounded-xl text-xl font-medium cursor-pointer select-none transition-all duration-150 bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-400 dark:hover:bg-indigo-500 active:scale-95 active:opacity-85 text-white"
+        onclick={() => onKeyPress(';')}
+      >
+        ;
+      </button>
+    </div>
+  {/if}
+
   <!-- Teclado numérico principal -->
   {#each buttons as row, i (i)}
     <div class="flex gap-1.5">

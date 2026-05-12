@@ -13,6 +13,8 @@
   import UnitConverter from './lib/components/UnitConverter.svelte';
   import ProgrammerView from './lib/components/ProgrammerView.svelte';
   import ComplexInput from './lib/components/ComplexInput.svelte';
+  import MatrixInput from './lib/components/MatrixInput.svelte';
+  import StatisticsView from './lib/components/StatisticsView.svelte';
 
   /** Estado reactivo derivado de la store */
   const state = $derived($calculator);
@@ -55,12 +57,16 @@
     '%': () => calculator.append('%'),
     '^': () => calculator.append('^'),
 
-    // ── Paréntesis ──────────────────────────────────────────
+    // ── Paréntesis y corchetes ──────────────────────────────
     '(': () => calculator.append('('),
     ')': () => calculator.append(')'),
+    '[': () => calculator.append('['),
+    ']': () => calculator.append(']'),
 
-    // ── Punto decimal ───────────────────────────────────────
+    // ── Punto decimal y separadores ─────────────────────────
     '.': () => calculator.append('.'),
+    ',': () => calculator.append(','),
+    ';': () => calculator.append(';'),
 
     // ── Evaluar ─────────────────────────────────────────────
     'Enter': () => calculator.calculate(),
@@ -222,12 +228,18 @@
     onToggleExpand={() => calculator.toggleScientific()}
   />
 
-  <!-- Teclado numérico principal -->
-  <Keypad
-    onKeyPress={handleKeyPress}
-    mode={state.mode}
-    base={state.base}
-  />
+  <!-- Teclado numérico principal (reemplazado en modos Matrix y Statistics) -->
+  {#if state.mode === 'Matrix'}
+    <MatrixInput />
+  {:else if state.mode === 'Statistics'}
+    <StatisticsView />
+  {:else}
+    <Keypad
+      onKeyPress={handleKeyPress}
+      mode={state.mode}
+      base={state.base}
+    />
+  {/if}
 
   <!-- Panel de historial -->
   <History
