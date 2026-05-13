@@ -59,7 +59,7 @@
 
   /** Serializa una matriz al formato [[a,b],[c,d]] */
   function serializeMatrix(mat) {
-    return '[[' + mat.map(row => '[' + row.join(',') + ']').join(',') + ']]';
+    return '[' + mat.map(row => '[' + row.join(',') + ']').join(',') + ']';
   }
 
   /** Parsea valores vacíos a 0 para una matriz */
