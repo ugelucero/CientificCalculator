@@ -232,9 +232,14 @@ fn try_matrix_function(expr: &str) -> Result<Option<(String, f64)>, CalcError> {
     for name in &["det", "inv", "trans", "id"] {
         let prefix = format!("{} (", name);
 
-        // Intentar con espacio antes del paréntesis: "det ("
-        // o sin espacio: "det("
+        // Intentar con espacio: "det (" o sin espacio: "det("
         if let Some(rest) = expr.strip_prefix(&prefix).or_else(|| {
+            // Sin espacio: "det("
+            let no_space = format!("{}(", name);
+            if let Some(r) = expr.strip_prefix(&no_space) {
+                return Some(r);
+            }
+            // Case-insensitive con espacio
             let lower = expr.to_lowercase();
             let lower_prefix = format!("{} (", name);
             if lower.starts_with(&lower_prefix) {
