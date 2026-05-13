@@ -524,4 +524,151 @@ export const api = {
     if (!invoke) return;
     return invoke('set_base', { base });
   },
+
+  /**
+   * Resuelve una ecuación usando el método de Newton-Raphson.
+   * Si Tauri está disponible, usa el backend Rust.
+   * Si no, usa el solver JS implementado aquí mismo.
+   *
+   * @param {string} func - Expresión de f(x), ej: "x^2 - 4"
+   * @param {string} derivative - Expresión de f'(x), ej: "2*x" (vacío = numérico)
+   * @param {number} guess - Valor inicial x₀
+   * @param {number} tolerance - Tolerancia (ej: 1e-10)
+   * @param {number} maxIter - Máx. iteraciones (ej: 100)
+   * @returns {Promise<{root: number, fRoot: number, iterations: number, converged: boolean, error: string|null, steps: Array<{n: number, x_n: number, f_x_n: number}>}>}
+   */
+  async solveNewton({ func, derivative, guess, tolerance, maxIter }) {
+    const invoke = await getInvoke();
+    if (invoke) {
+      return invoke('solve_newton', {
+        func,
+        derivative: derivative || '',
+        initialGuess: guess,
+        tolerance,
+        maxIterations: maxIter,
+      });
+    }
+    // Fallback: solver JS local
+    return solveNewtonLocal(func, derivative, guess, tolerance, maxIter);
+  },
 };
+
+/**
+ * Implementación local del método Newton-Raphson (fallback web).
+ */
+function solveNewtonLocal(funcStr, derivStr, guess, tolerance, maxIter) {
+  const steps = [];
+  let x = guess;
+
+  for (let i = 1; i <= maxIter; i++) {
+    const fx = evaluateFunc(funcStr, x);
+
+    let dfx;
+    if (derivStr && derivStr.trim()) {
+      dfx = evaluateFunc(derivStr, x);
+    } else {
+      // Aproximación numérica de la derivada
+      const h = 1e-8;
+      dfx = (evaluateFunc(funcStr, x + h) - evaluateFunc(funcStr, x - h)) / (2 * h);
+    }
+
+    steps.push({ n: i, xN: x, fXN: fx });
+
+    // Verificar convergencia
+    if (Math.abs(fx) < tolerance) {
+      return {
+        root: x,
+        fRoot: fx,
+        iterations: i,
+        converged: true,
+        error: null,
+        steps,
+      };
+    }
+
+    // Verificar derivada cero
+    if (Math.abs(dfx) < 1e-15) {
+      return {
+        root: x,
+        fRoot: fx,
+        iterations: i,
+        converged: false,
+        error: `Derivada cercana a cero (≈ ${dfx}) en x ≈ ${x}; el método no puede continuar`,
+        steps,
+      };
+    }
+
+    // Iteración de Newton
+    const xNew = x - fx / dfx;
+
+    // Verificar estancamiento
+    if (Math.abs(xNew - x) < tolerance * 1e-3 && Math.abs(fx) >= tolerance) {
+      return {
+        root: x,
+        fRoot: fx,
+        iterations: i,
+        converged: false,
+        error: `El método se estancó en x ≈ ${x} (f(x) ≈ ${fx}). No se encuentra raíz con la precisión deseada.`,
+        steps,
+      };
+    }
+
+    x = xNew;
+  }
+
+  // No convergió en maxIter
+  const finalFx = evaluateFunc(funcStr, x);
+  return {
+    root: x,
+    fRoot: finalFx,
+    iterations: maxIter,
+    converged: false,
+    error: `No convergió en ${maxIter} iteraciones. Último valor: x ≈ ${x} (f(x) ≈ ${finalFx})`,
+    steps,
+  };
+}
+
+/**
+ * Evalúa una función de x dada como string.
+ * Usa new Function() para seguridad y rendimiento.
+ * Soporta las mismas funciones que el evaluador local.
+ */
+function evaluateFunc(expr, xVal) {
+  const trimmed = expr.trim();
+  if (!trimmed) return NaN;
+
+  // Permitir solo caracteres seguros
+  if (!/^[\d+\-*/().%\s^!a-zA-Z]+$/.test(trimmed)) {
+    throw new Error('Caracteres no permitidos en la expresión');
+  }
+
+  let e = trimmed;
+
+  // Funciones matemáticas
+  e = e.replace(/\bsin\(/g, 'Math.sin(');
+  e = e.replace(/\bcos\(/g, 'Math.cos(');
+  e = e.replace(/\btan\(/g, 'Math.tan(');
+  e = e.replace(/\basin\(/g, 'Math.asin(');
+  e = e.replace(/\bacos\(/g, 'Math.acos(');
+  e = e.replace(/\batan\(/g, 'Math.atan(');
+  e = e.replace(/\bsinh\(/g, 'Math.sinh(');
+  e = e.replace(/\bcosh\(/g, 'Math.cosh(');
+  e = e.replace(/\btanh\(/g, 'Math.tanh(');
+  e = e.replace(/\blog10\(/g, 'Math.log10(');
+  e = e.replace(/\blog2\(/g, 'Math.log2(');
+  e = e.replace(/\blog\(/g, 'Math.log10(');
+  e = e.replace(/\bln\(/g, 'Math.log(');
+  e = e.replace(/\bsqrt\(/g, 'Math.sqrt(');
+  e = e.replace(/\bcbrt\(/g, 'Math.cbrt(');
+  e = e.replace(/\babs\(/g, 'Math.abs(');
+  e = e.replace(/\bexp\(/g, 'Math.exp(');
+  e = e.replace(/\bpi\b/g, 'Math.PI');
+  e = e.replace(/\be\b/g, 'Math.E');
+
+  // Potencia
+  e = e.replace(/\^/g, '**');
+
+  // Construir función con x como parámetro
+  const fn = new Function('x', `"use strict"; return (${e});`);
+  return fn(xVal);
+}

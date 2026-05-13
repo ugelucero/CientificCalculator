@@ -15,6 +15,7 @@
   import ComplexInput from './lib/components/ComplexInput.svelte';
   import MatrixInput from './lib/components/MatrixInput.svelte';
   import StatisticsView from './lib/components/StatisticsView.svelte';
+  import SolverView from './lib/components/SolverView.svelte';
 
   /** Estado reactivo derivado de la store */
   const state = $derived($calculator);
@@ -248,11 +249,13 @@
     onToggleExpand={() => calculator.toggleScientific()}
   />
 
-  <!-- Teclado numérico principal (reemplazado en modos Matrix y Statistics) -->
+  <!-- Teclado numérico principal (reemplazado en modos Matrix, Statistics y Solver) -->
   {#if state.mode === 'Matrix'}
     <MatrixInput />
   {:else if state.mode === 'Statistics'}
     <StatisticsView />
+  {:else if state.mode === 'Solver'}
+    <SolverView />
   {:else}
     <Keypad
       onKeyPress={handleKeyPress}

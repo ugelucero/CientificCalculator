@@ -7,8 +7,119 @@
 //! inyectando el valor de `x` como variable mediante sustitución textual.
 
 use crate::models::errors::{CalcError, ErrorKind};
-use crate::models::types::AngleMode;
+use crate::models::types::{AngleMode, NewtonResult, NewtonStep};
 use crate::parser;
+
+/// Versión detallada de `newton_raphson` que también retorna el historial de iteraciones.
+///
+/// Similar a `newton_raphson`, pero devuelve un `NewtonResult` con todos
+/// los pasos intermedios, ideal para mostrar la tabla de iteraciones en la UI.
+pub fn newton_raphson_detailed(
+    func: &str,
+    derivative: &str,
+    initial_guess: f64,
+    tolerance: f64,
+    max_iterations: u32,
+) -> NewtonResult {
+    let mut x = initial_guess;
+    let mut steps: Vec<NewtonStep> = Vec::new();
+
+    for iteration in 0..max_iterations {
+        let fx = match evaluate_with_x(func, x) {
+            Ok(v) => v,
+            Err(e) => {
+                return NewtonResult {
+                    root: x,
+                    f_root: f64::NAN,
+                    iterations: iteration,
+                    converged: false,
+                    error: Some(format!("Error al evaluar f(x): {}", e.message)),
+                    steps,
+                };
+            }
+        };
+        let dfx = match evaluate_with_x(derivative, x) {
+            Ok(v) => v,
+            Err(e) => {
+                return NewtonResult {
+                    root: x,
+                    f_root: fx,
+                    iterations: iteration,
+                    converged: false,
+                    error: Some(format!("Error al evaluar f'(x): {}", e.message)),
+                    steps,
+                };
+            }
+        };
+
+        steps.push(NewtonStep {
+            n: iteration + 1,
+            x_n: x,
+            f_x_n: fx,
+        });
+
+        // Verificar convergencia.
+        if fx.abs() < tolerance {
+            return NewtonResult {
+                root: x,
+                f_root: fx,
+                iterations: iteration + 1,
+                converged: true,
+                error: None,
+                steps,
+            };
+        }
+
+        // Verificar derivada cero.
+        if dfx.abs() < 1e-15 {
+            return NewtonResult {
+                root: x,
+                f_root: fx,
+                iterations: iteration + 1,
+                converged: false,
+                error: Some(format!(
+                    "Derivada cercana a cero (≈ {}) en x ≈ {}; el método no puede continuar",
+                    dfx, x
+                )),
+                steps,
+            };
+        }
+
+        // Iteración de Newton.
+        let x_new = x - fx / dfx;
+
+        // Verificar estancamiento.
+        if (x_new - x).abs() < tolerance * 1e-3 && fx.abs() >= tolerance {
+            return NewtonResult {
+                root: x,
+                f_root: fx,
+                iterations: iteration + 1,
+                converged: false,
+                error: Some(format!(
+                    "El método se estancó en x ≈ {} (f(x) ≈ {}). No se encuentra raíz con la precisión deseada.",
+                    x, fx
+                )),
+                steps,
+            };
+        }
+
+        x = x_new;
+    }
+
+    // No convergió en max_iterations.
+    let final_fx = evaluate_with_x(func, x).unwrap_or(f64::NAN);
+    NewtonResult {
+        root: x,
+        f_root: final_fx,
+        iterations: max_iterations,
+        converged: false,
+        error: Some(format!(
+            "No convergió en {} iteraciones. Último valor: x ≈ {} (f(x) ≈ {})",
+            max_iterations, x, final_fx
+        )),
+        steps,
+    }
+}
 
 /// Encuentra una raíz de `func` usando el método de Newton-Raphson.
 ///

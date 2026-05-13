@@ -15,6 +15,8 @@ use commands::memory::{
     memory_add, memory_subtract,
     set_angle_mode, set_precision,
 };
+use commands::solver::solve_newton;
+
 use persistence::state::load_state;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -32,6 +34,7 @@ pub fn run() {
             memory_subtract,
             set_angle_mode,
             set_precision,
+            solve_newton,
         ])
         .setup(|app| {
             // Cargar estado persistido desde disco.

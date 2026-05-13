@@ -131,3 +131,24 @@ pub struct Complex {
     pub real: f64,
     pub imag: f64,
 }
+
+/// Paso individual del método de Newton-Raphson.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewtonStep {
+    pub n: u32,
+    pub x_n: f64,
+    pub f_x_n: f64,
+}
+
+/// Resultado completo del método de Newton-Raphson.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewtonResult {
+    pub root: f64,
+    pub f_root: f64,
+    pub iterations: u32,
+    pub converged: bool,
+    pub error: Option<String>,
+    pub steps: Vec<NewtonStep>,
+}

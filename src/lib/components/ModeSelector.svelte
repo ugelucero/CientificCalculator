@@ -18,6 +18,7 @@
     { value: 'Complex',     label: 'Cmplx' },
     { value: 'Matrix',      label: 'Mat' },
     { value: 'Statistics',  label: 'Stat' },
+    { value: 'Solver',      label: 'Solv' },
   ];
 
   const angleModes = [
