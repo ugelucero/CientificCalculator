@@ -28,23 +28,18 @@ pub fn solve_newton(
     tolerance: f64,
     max_iterations: u32,
 ) -> NewtonResult {
-    let deriv = if derivative.trim().is_empty() {
-        // Si no se proporciona derivada, usamos una aproximación numérica
-        // construyendo una expresión que el parser puede evaluar.
-        // Nota: en el frontend JS ya se maneja la aproximación numérica,
-        // pero aquí en Rust preferimos que el usuario la proporcione.
-        // Si está vacía, devolvemos un error controlado.
+    if derivative.trim().is_empty() {
         return NewtonResult {
             root: 0.0,
             f_root: f64::NAN,
             iterations: 0,
             converged: false,
             error: Some(
-                "Debes proporcionar la derivada f'(x) o dejarla vacía para usar la aproximación numérica (fallback web).".to_string(),
+                "Debes proporcionar la derivada f'(x).".to_string(),
             ),
             steps: Vec::new(),
         };
-    };
+    }
 
-    solver::newton_raphson_detailed(&func, &deriv, initial_guess, tolerance, max_iterations)
+    solver::newton_raphson_detailed(&func, &derivative, initial_guess, tolerance, max_iterations)
 }
