@@ -1,43 +1,89 @@
-# Svelte + Vite
+# 🧮 CientificCalculator
 
-This template should help get you started developing with Svelte in Vite.
+Calculadora científica multiplataforma construida con Tauri 2.x + Rust + Svelte 5.
 
-## Recommended IDE Setup
+## ✨ Características
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+- **Modos**: Standard, Scientific, Programmer, Complex, Matrix, Statistics, Graph, Solver
+- **Operaciones**: aritméticas, trigonométricas, logarítmicas, exponenciales, factorial, etc.
+- **Modo Programador**: bases HEX/DEC/OCT/BIN, operaciones bitwise (AND, OR, XOR, NOT, SHL, SHR)
+- **Números Complejos**: operaciones a+bi, polar, conj, arg, real, imag
+- **Matrices**: suma, resta, multiplicación, determinante, inversa, transpuesta
+- **Estadístico**: media, mediana, moda, desviación estándar, regresión lineal, cuartiles
+- **Gráficos 2D**: zoom, pan, tooltip, múltiples curvas simultáneas
+- **Solver**: Newton-Raphson con derivada automática
+- **Conversión de unidades**: 10 categorías, 71 unidades
+- **Historial**: persistente entre sesiones
+- **Memoria**: M+, M-, MR, MC
+- **Temas**: claro/oscuro
+- **Atajos de teclado**: números, operadores, Enter, Escape, etc.
 
-## Need an official Svelte framework?
+## 🚀 Instalación
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+### Linux
+```bash
+# Debian/Ubuntu
+sudo dpkg -i CientificCalculator_0.1.0_amd64.deb
 
-## Technical considerations
+# Fedora/RHEL
+sudo rpm -i CientificCalculator-0.1.0-1.x86_64.rpm
 
-**Why use this over SvelteKit?**
-
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
-
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
-
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
-
-**Why include `.vscode/extensions.json`?**
-
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `checkJs` in the JS template?**
-
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
+# O ejecutar directamente
+./app
 ```
+
+### Windows
+Descarga el instalador MSI desde [Releases](https://github.com/ugelucero/CientificCalculator/releases).
+
+### macOS
+Descarga el DMG desde [Releases](https://github.com/ugelucero/CientificCalculator/releases).
+
+## 🛠️ Compilar desde código
+
+```bash
+# Requisitos: Rust 1.70+, Node 18+, dependencias del sistema
+sudo apt install libdbus-1-dev libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev
+
+git clone https://github.com/ugelucero/CientificCalculator.git
+cd CientificCalculator
+npm install
+npm run tauri build
+```
+
+## 📖 Uso básico
+
+| Tecla | Acción |
+|-------|--------|
+| `0-9` | Dígitos |
+| `+`, `-`, `*`, `/` | Operaciones básicas |
+| `Enter` o `=` | Evaluar |
+| `Escape` | Limpiar |
+| `Backspace` | Borrar último token |
+
+## 🏗️ Arquitectura
+
+```
+CientificCalculator/
+├── src/                # Frontend Svelte 5
+│   └── lib/
+│       ├── components/ # 10 componentes UI
+│       └── utils/      # tauri-bridge, formatters
+├── src-tauri/          # Backend Rust
+│   └── src/
+│       ├── commands/   # Comandos Tauri (evaluate, convert, memory, history, solver)
+│       ├── math/       # Módulos matemáticos (trig, complex, matrix, stats, solver, convert)
+│       ├── parser/     # Parser Shunting Yard (tokenizer, AST, evaluador)
+│       ├── models/     # Tipos de datos compartidos
+│       └── persistence/ # Persistencia de estado
+└── Doc/                # Documentación técnica
+```
+
+## 📦 Dependencias técnicas
+
+- **Frontend**: Svelte 5, TailwindCSS, Vite
+- **Backend**: Rust, Tauri 2.x
+- **Librerías Rust**: serde, chrono, uuid, nalgebra
+
+## 📄 Licencia
+
+MIT
