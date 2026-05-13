@@ -456,8 +456,8 @@ export const api = {
       console.log('[tauri-bridge] Using Tauri invoke for convertUnits');
       return invoke('convert_units', {
         value,
-        from_unit: fromUnit,
-        to_unit: toUnit,
+        fromUnit,
+        toUnit,
       });
     }
     // Fallback local para desarrollo en navegador
