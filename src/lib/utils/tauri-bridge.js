@@ -455,8 +455,8 @@ export const api = {
     if (invoke) {
       return invoke('convert_units', {
         value,
-        fromUnit,
-        toUnit,
+        from_unit: fromUnit,
+        to_unit: toUnit,
       });
     }
     // Fallback local para desarrollo en navegador
