@@ -1,0 +1,91 @@
+<script>
+  /**
+   * Display.svelte - Pantalla de la calculadora.
+   * Muestra expresión actual, resultado y estado (modo, ángulo, memoria, precisión).
+   * En modo Programmer, el resultado se muestra con prefijo de base.
+   */
+  const {
+    expression = '',
+    result = '',
+    error = null,
+    angleMode = 'Deg',
+    memory = null,
+    mode = 'Standard',
+    precision = 10,
+    base = 'DEC',
+  } = $props();
+
+  /** Abreviaturas para modos angulares */
+  const angleLabel = $derived(
+    angleMode === 'Deg' ? 'DEG' : angleMode === 'Rad' ? 'RAD' : 'GRAD'
+  );
+
+  /** Etiqueta del modo actual */
+  const modeLabel = $derived(
+    mode === 'Scientific' ? 'SCI' : mode === 'Programmer' ? 'PROG' : mode === 'Complex' ? 'CMPLX' : ''
+  );
+
+  /** Etiqueta de la base activa (modo Programmer) */
+  const baseLabel = $derived(
+    mode === 'Programmer' ? base : ''
+  );
+
+  /** Prefijo para el resultado según base (modo Programmer) */
+  const formattedResult = $derived(() => {
+    if (mode !== 'Programmer' || !result || error) return result;
+    const num = parseInt(result, 10);
+    if (Number.isNaN(num)) return result;
+    const abs = Math.abs(num);
+    switch (base) {
+      case 'HEX': return '0x' + abs.toString(16).toUpperCase();
+      case 'OCT': return '0o' + abs.toString(8);
+      case 'BIN': return '0b' + abs.toString(2);
+      default: return String(abs);
+    }
+  });
+
+  /** Clases dinámicas para la expresión */
+  const expressionClasses = $derived(
+    'text-right text-base min-h-[24px] leading-relaxed overflow-x-auto whitespace-nowrap' +
+    (error !== null ? ' text-red-500' : ' text-gray-500 dark:text-gray-400')
+  );
+</script>
+
+<div class="bg-gray-200 dark:bg-gray-800 rounded-xl px-4 pb-4 pt-2 mx-2 my-1 min-h-[96px] flex flex-col justify-end overflow-hidden">
+  <!-- Barra de estado: indicadores -->
+  <div class="flex justify-between items-center mb-1 min-h-[20px]">
+    <div class="flex gap-1.5 items-center">
+      {#if modeLabel}
+        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-purple-700 text-purple-200">{modeLabel}</span>
+      {/if}
+      {#if baseLabel}
+        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-teal-700 text-teal-200">{baseLabel}</span>
+      {/if}
+      <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-gray-600 dark:bg-gray-700 text-gray-400 dark:text-gray-400">P{precision}</span>
+    </div>
+    <div class="flex gap-1.5 items-center">
+      {#if memory !== null}
+        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-amber-600 text-amber-100">M</span>
+      {/if}
+      <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-sm select-none bg-gray-600 dark:bg-gray-700 text-gray-400 dark:text-gray-400">{angleLabel}</span>
+    </div>
+  </div>
+
+  <!-- Expresión actual -->
+  <div class={expressionClasses}>
+    {expression || '\u00A0'}
+  </div>
+
+  <!-- Resultado o mensaje de error -->
+  <div class="text-right min-h-[40px] leading-tight overflow-x-auto whitespace-nowrap transition-colors duration-200"
+    class:text-red-500={error !== null}
+  >
+    {#if error}
+      <span class="text-lg font-medium break-words whitespace-normal">{error}</span>
+    {:else}
+      <span class="text-3xl font-semibold text-gray-900 dark:text-gray-100">
+        {formattedResult() || '\u00A0'}
+      </span>
+    {/if}
+  </div>
+</div>
