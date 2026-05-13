@@ -538,17 +538,22 @@ export const api = {
    * @returns {Promise<{root: number, fRoot: number, iterations: number, converged: boolean, error: string|null, steps: Array<{n: number, x_n: number, f_x_n: number}>}>}
    */
   async solveNewton({ func, derivative, guess, tolerance, maxIter }) {
+    // Si no hay derivada, usar el fallback JS (tiene aprox. numérica)
+    // El backend Rust requiere la derivada explícita.
+    if (!derivative || !derivative.trim()) {
+      return solveNewtonLocal(func, derivative, guess, tolerance, maxIter);
+    }
     const invoke = await getInvoke();
     if (invoke) {
       return invoke('solve_newton', {
         func,
-        derivative: derivative || '',
+        derivative,
         initialGuess: guess,
         tolerance,
         maxIterations: maxIter,
       });
     }
-    // Fallback: solver JS local
+    // Fallback: solver JS local (con derivada)
     return solveNewtonLocal(func, derivative, guess, tolerance, maxIter);
   },
 };
