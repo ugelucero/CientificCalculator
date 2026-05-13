@@ -655,11 +655,11 @@
     bind:this={canvasEl}
     class="block w-full h-full"
     style="width: {canvasWidth}px; height: {canvasHeight}px; cursor: default;"
-    onwheel|nonpassive={handleWheel}
-    onmousedown={handleMouseDown}
-    onmousemove={handleMouseMove}
-    onmouseup={handleMouseUp}
-    onmouseleave={handleMouseLeave}
+    on:wheel|nonpassive={handleWheel}
+    on:mousedown={handleMouseDown}
+    on:mousemove={handleMouseMove}
+    on:mouseup={handleMouseUp}
+    on:mouseleave={handleMouseLeave}
   />
 
   {#if tooltip}

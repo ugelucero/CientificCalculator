@@ -16,6 +16,7 @@
   import MatrixInput from './lib/components/MatrixInput.svelte';
   import StatisticsView from './lib/components/StatisticsView.svelte';
   import SolverView from './lib/components/SolverView.svelte';
+  import GraphView from './lib/components/GraphView.svelte';
 
   /** Estado reactivo derivado de la store */
   const state = $derived($calculator);
@@ -256,6 +257,8 @@
     <StatisticsView />
   {:else if state.mode === 'Solver'}
     <SolverView />
+  {:else if state.mode === 'Graph'}
+    <GraphView />
   {:else}
     <Keypad
       onKeyPress={handleKeyPress}

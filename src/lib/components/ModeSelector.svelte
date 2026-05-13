@@ -19,6 +19,7 @@
     { value: 'Matrix',      label: 'Mat' },
     { value: 'Statistics',  label: 'Stat' },
     { value: 'Solver',      label: 'Solv' },
+    { value: 'Graph',       label: 'Graph' },
   ];
 
   const angleModes = [
