@@ -174,7 +174,22 @@
       });
       result = res.formatted;
     } catch (err) {
-      error = err?.message || 'Error en la conversión';
+      // En Tauri los errores pueden ser string (JSON) u objeto
+      let detail = 'Error desconocido';
+      if (typeof err === 'string') {
+        try {
+          const parsed = JSON.parse(err);
+          detail = parsed.message || parsed.kind || err;
+        } catch {
+          detail = err;
+        }
+      } else if (err?.message) {
+        detail = err.message;
+      } else {
+        detail = JSON.stringify(err);
+      }
+      error = `Error: ${detail}`;
+      console.error('[convertUnits]', err, typeof err);
     } finally {
       loading = false;
     }

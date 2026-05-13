@@ -453,6 +453,7 @@ export const api = {
   async convertUnits({ value, fromUnit, toUnit }) {
     const invoke = await getInvoke();
     if (invoke) {
+      console.log('[tauri-bridge] Using Tauri invoke for convertUnits');
       return invoke('convert_units', {
         value,
         from_unit: fromUnit,
@@ -460,6 +461,7 @@ export const api = {
       });
     }
     // Fallback local para desarrollo en navegador
+    console.log('[tauri-bridge] Using local fallback for convertUnits');
     return convertUnitsLocal(value, fromUnit, toUnit);
   },
 
