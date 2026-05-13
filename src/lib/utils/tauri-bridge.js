@@ -633,14 +633,20 @@ function solveNewtonLocal(funcStr, derivStr, guess, tolerance, maxIter) {
   };
 }
 
+// ─── Cache de funciones compiladas (para muestreo adaptativo) ─────────────
+
+/** @type {Map<string, Function>} */
+const funcCache = new Map();
+
 /**
- * Evalúa una función de x dada como string.
- * Usa new Function() para seguridad y rendimiento.
- * Soporta las mismas funciones que el evaluador local.
+ * Compila una expresión de función f(x) en una función JS ejecutable.
+ * Retorna null si la expresión está vacía.
+ * @param {string} expr - Expresión con 'x' como variable
+ * @returns {Function|null}
  */
-function evaluateFunc(expr, xVal) {
+function compileFunc(expr) {
   const trimmed = expr.trim();
-  if (!trimmed) return NaN;
+  if (!trimmed) return null;
 
   // Permitir solo caracteres seguros
   if (!/^[\d+\-*/().%\s^!a-zA-Z]+$/.test(trimmed)) {
@@ -649,16 +655,16 @@ function evaluateFunc(expr, xVal) {
 
   let e = trimmed;
 
-  // Funciones matemáticas
-  e = e.replace(/\bsin\(/g, 'Math.sin(');
-  e = e.replace(/\bcos\(/g, 'Math.cos(');
-  e = e.replace(/\btan\(/g, 'Math.tan(');
+  // Funciones matemáticas (orden: más largas primero)
   e = e.replace(/\basin\(/g, 'Math.asin(');
   e = e.replace(/\bacos\(/g, 'Math.acos(');
   e = e.replace(/\batan\(/g, 'Math.atan(');
   e = e.replace(/\bsinh\(/g, 'Math.sinh(');
   e = e.replace(/\bcosh\(/g, 'Math.cosh(');
   e = e.replace(/\btanh\(/g, 'Math.tanh(');
+  e = e.replace(/\bsin\(/g, 'Math.sin(');
+  e = e.replace(/\bcos\(/g, 'Math.cos(');
+  e = e.replace(/\btan\(/g, 'Math.tan(');
   e = e.replace(/\blog10\(/g, 'Math.log10(');
   e = e.replace(/\blog2\(/g, 'Math.log2(');
   e = e.replace(/\blog\(/g, 'Math.log10(');
@@ -674,6 +680,37 @@ function evaluateFunc(expr, xVal) {
   e = e.replace(/\^/g, '**');
 
   // Construir función con x como parámetro
-  const fn = new Function('x', `"use strict"; return (${e});`);
-  return fn(xVal);
+  return new Function('x', `"use strict"; return (${e});`);
+}
+
+/**
+ * Evalúa una función de x dada como string.
+ * Usa new Function() para seguridad y rendimiento.
+ * Soporta las mismas funciones que el evaluador local.
+ * Incluye caché de funciones compiladas para muestreo intensivo.
+ *
+ * @param {string} expr - Expresión con 'x' como variable
+ * @param {number} xVal - Valor a evaluar
+ * @returns {number}
+ */
+export function evaluateFunc(expr, xVal) {
+  let fn = funcCache.get(expr);
+  if (!fn) {
+    fn = compileFunc(expr);
+    if (!fn) return NaN;
+    funcCache.set(expr, fn);
+  }
+  try {
+    return fn(xVal);
+  } catch {
+    return NaN;
+  }
+}
+
+/**
+ * Invalida la caché de funciones compiladas.
+ * Útil cuando cambian las expresiones a graficar.
+ */
+export function clearFuncCache() {
+  funcCache.clear();
 }
